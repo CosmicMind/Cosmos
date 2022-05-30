@@ -1,0 +1,9 @@
+name: Mark stale issues and pull requests
+
+on:
+  schedule:
+  - cron: '44 18 * * *'
+
+jobs:
+  stale:
+    uses: cosmicverse/actions/.github/workflows/stale.yml@main

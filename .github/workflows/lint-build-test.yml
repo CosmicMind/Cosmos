@@ -1,0 +1,13 @@
+name: Lint, Build, and Test
+
+on: [push]
+
+jobs:
+  lint:
+    uses: cosmicverse/actions/.github/workflows/lint.yml@main
+  build:
+    needs: lint
+    uses: cosmicverse/actions/.github/workflows/build.yml@main
+  test:
+    needs: build
+    uses: cosmicverse/actions/.github/workflows/test.yml@main
