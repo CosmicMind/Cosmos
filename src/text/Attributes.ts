@@ -35,13 +35,13 @@
  */
 
 import {
-  XSelection,
-  fromX,
-  toX,
+    XSelection,
+    fromX,
+    toX,
 } from './Selection'
 
-import { Text } from './Text'
-import { Delta } from './Operation'
+import {Text} from './Text'
+import {Delta} from './Operation'
 
 /**
  * The `LineOptions` interface defines the various line options available.
@@ -49,8 +49,8 @@ import { Delta } from './Operation'
  * @property {Optional<'dotted' | 'dashed' | 'solid' | 'double' | 'groove' | 'ridge' | 'inset' | 'outset'>} style
  */
 export interface LineOptions {
-  color: string
-  style: 'dotted' | 'dashed' | 'solid' | 'double' | 'groove' | 'ridge' | 'inset' | 'outset'
+    color: string
+    style: 'dotted' | 'dashed' | 'solid' | 'double' | 'groove' | 'ridge' | 'inset' | 'outset'
 }
 
 /**
@@ -70,20 +70,20 @@ export interface LineOptions {
  * @property {Optional<'left' | 'center' | 'right' | 'justify'>} align
  */
 export interface Attributes {
-  fontSize?: string,
-  fontFamily?: string,
-  fontWeight?: string,
-  fontStyle?: string,
-  lineHeight?: string
-  color?: string
+    fontSize?: string,
+    fontFamily?: string,
+    fontWeight?: string,
+    fontStyle?: string,
+    lineHeight?: string
+    color?: string
 
-  bold?: boolean
-  italic?: boolean
-  underline?: boolean | Partial<LineOptions>
-  strikethrough?: boolean | Partial<LineOptions>
+    bold?: boolean
+    italic?: boolean
+    underline?: boolean | Partial<LineOptions>
+    strikethrough?: boolean | Partial<LineOptions>
 
-  verticalAlign?: 'baseline' | 'super' | 'sub'
-  align?: 'left' | 'center' | 'right' | 'justify'
+    verticalAlign?: 'baseline' | 'super' | 'sub'
+    align?: 'left' | 'center' | 'right' | 'justify'
 }
 
 /**
@@ -91,7 +91,7 @@ export interface Attributes {
  * @returns {Attributes}
  */
 export function createAttributes(): Attributes {
-  return {}
+    return {}
 }
 
 /**
@@ -101,29 +101,29 @@ export function createAttributes(): Attributes {
  * @returns {Attributes[]}
  */
 export function extractAttributes(delta: Delta[], s: XSelection): Attributes[] {
-  const fX = fromX(s).x
-  const tX = toX(s).x
-  const a: Attributes[] = []
+    const fX = fromX(s).x
+    const tX = toX(s).x
+    const a: Attributes[] = []
 
-  let cursor = 0
+    let cursor = 0
 
-  for (const d of delta) {
-    const next = cursor + d.length
-    const started = cursor > fX || next >= fX
+    for (const d of delta) {
+        const next = cursor + d.length
+        const started = cursor > fX || next >= fX
 
-    if (started && d.attributes) {
-      a.push(d.attributes)
+        if (started && d.attributes) {
+            a.push(d.attributes)
+        }
+
+        const ended = next >= tX
+        if (ended) {
+            break
+        }
+
+        cursor = next
     }
 
-    const ended = next >= tX
-    if (ended) {
-      break
-    }
-
-    cursor = next
-  }
-
-  return a
+    return a
 }
 
 /**
@@ -135,5 +135,5 @@ export function extractAttributes(delta: Delta[], s: XSelection): Attributes[] {
  * @returns {typeof Attributes[k]}
  */
 export function fetchAttribute<K extends keyof Attributes>(t: Text, s: XSelection, k: K): Attributes[K] {
-  return extractAttributes(t.delta, s).find(x => x[k])?.[k]
+    return extractAttributes(t.delta, s).find(x => x[k])?.[k]
 }
