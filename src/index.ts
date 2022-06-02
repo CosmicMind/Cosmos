@@ -31,89 +31,89 @@
  */
 
 export type {
-    LineOptions,
-    Attributes,
+  LineOptions,
+  Attributes,
 } from './text/Attributes'
 
 export {
-    createAttributes,
-    extractAttributes,
-    fetchAttribute,
+  createAttributes,
+  extractAttributes,
+  fetchAttribute,
 } from './text/Attributes'
 
 export type {
-    BlockType,
-    DeltaType,
-    Delta,
-    RetainOperation,
-    DeleteOperation,
-    Operation,
+  BlockType,
+  DeltaType,
+  Delta,
+  RetainOperation,
+  DeleteOperation,
+  Operation,
 } from './text/Operation'
 
 export {
-    BlockSymbol,
-    Block,
-    createDelta,
-    createDeltaText,
-    createDeltaBlock,
-    createRetainOperation,
-    createDeleteOperation,
-    createSwapOperation,
+  BlockSymbol,
+  Block,
+  createDelta,
+  createDeltaText,
+  createDeltaBlock,
+  createRetainOperation,
+  createDeleteOperation,
+  createSwapOperation,
 } from './text/Operation'
 
-export type {Transaction} from './text/Transaction'
+export type { Transaction } from './text/Transaction'
 
 export {
-    createTransaction,
-    commit,
-    selectionFromTransaction,
+  createTransaction,
+  commit,
+  selectionFromTransaction,
 } from './text/Transaction'
 
 export type {
-    XPoint,
-    YPoint,
-    XYPoint,
-    Selection,
-    XSelection,
-    YSelection,
-    XYSelection,
+  XPoint,
+  YPoint,
+  XYPoint,
+  Selection,
+  XSelection,
+  YSelection,
+  XYSelection,
 } from './text/Selection'
 
 export {
-    createXPoint,
-    createYPoint,
-    createXYPoint,
-    createXSelection,
-    createYSelection,
-    createXYSelection,
-    isBackwards,
-    isTtoB,
-    fromX,
-    fromY,
-    fromXY,
-    toX,
-    toY,
-    toXY,
-    withinX,
-    withinY,
-    withinXY,
-    equalsX,
-    equalsY,
-    equalsXY,
-    distanceX,
-    distanceY,
-    distanceXY,
-    lengthX,
-    lengthY,
-    lengthXY,
-    collapseX,
-    collapseY,
-    collapseXY,
-    isCollapsedX,
-    isCollapsedY,
-    isCollapsedXY,
+  createXPoint,
+  createYPoint,
+  createXYPoint,
+  createXSelection,
+  createYSelection,
+  createXYSelection,
+  isBackwards,
+  isTtoB,
+  fromX,
+  fromY,
+  fromXY,
+  toX,
+  toY,
+  toXY,
+  withinX,
+  withinY,
+  withinXY,
+  equalsX,
+  equalsY,
+  equalsXY,
+  distanceX,
+  distanceY,
+  distanceXY,
+  lengthX,
+  lengthY,
+  lengthXY,
+  collapseX,
+  collapseY,
+  collapseXY,
+  isCollapsedX,
+  isCollapsedY,
+  isCollapsedXY,
 } from './text/Selection'
 
-export {Text} from './text/Text'
+export { Text } from './text/Text'
 
-export {glyphs} from './text/Glyphs'
+export { glyphs } from './text/Glyphs'

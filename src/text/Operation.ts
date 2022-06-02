@@ -34,7 +34,7 @@
  * @module Operation
  */
 
-import {Attributes} from './Attributes'
+import { Attributes } from './Attributes'
 
 /**
  * Defines the `block` element symbol.
@@ -55,12 +55,12 @@ export type BlockType = 'paragraph' |
  * The type of `block` that is rendered.
  */
 export const Block = {
-    paragraph: 'paragraph' as BlockType,
-    blockquote: 'blockquote' as BlockType,
-    unorderedList: 'unordered-list' as BlockType,
-    unordered: 'unordered' as BlockType,
-    orderedList: 'ordered-list' as BlockType,
-    ordered: 'ordered' as BlockType,
+  paragraph: 'paragraph' as BlockType,
+  blockquote: 'blockquote' as BlockType,
+  unorderedList: 'unordered-list' as BlockType,
+  unordered: 'unordered' as BlockType,
+  orderedList: 'ordered-list' as BlockType,
+  ordered: 'ordered' as BlockType,
 }
 
 /**
@@ -76,9 +76,9 @@ export type DeltaType = string | { block: BlockType }
  * @property {Attributes} attributes
  */
 export interface Delta {
-    readonly insert: DeltaType
-    readonly length: number
-    readonly attributes: Attributes
+  readonly insert: DeltaType
+  readonly length: number
+  readonly attributes: Attributes
 }
 
 /**
@@ -88,9 +88,9 @@ export interface Delta {
  * @returns {Delta}
  */
 export function createDelta(insert: DeltaType, attributes: Attributes = {}): Delta {
-    return 'string' === typeof insert ?
-        createDeltaText(insert, attributes) :
-        createDeltaBlock(insert.block as BlockType, attributes)
+  return 'string' === typeof insert ?
+    createDeltaText(insert, attributes) :
+    createDeltaBlock(insert.block as BlockType, attributes)
 }
 
 /**
@@ -100,11 +100,11 @@ export function createDelta(insert: DeltaType, attributes: Attributes = {}): Del
  * @returns {Delta}
  */
 export function createDeltaText(text: string, attributes: Attributes = {}): Delta {
-    return {
-        insert: text,
-        length: text.length,
-        attributes,
-    }
+  return {
+    insert: text,
+    length: text.length,
+    attributes,
+  }
 }
 
 /**
@@ -114,11 +114,11 @@ export function createDeltaText(text: string, attributes: Attributes = {}): Delt
  * @returns {Delta}
  */
 export function createDeltaBlock(block: BlockType, attributes: Attributes = {}): Delta {
-    return {
-        insert: {block},
-        length: 1,
-        attributes,
-    }
+  return {
+    insert: { block },
+    length: 1,
+    attributes,
+  }
 }
 
 /**
@@ -127,8 +127,8 @@ export function createDeltaBlock(block: BlockType, attributes: Attributes = {}):
  * @property {Optional<Attributes>}
  */
 export interface RetainOperation {
-    readonly retain: number
-    readonly attributes?: Attributes
+  readonly retain: number
+  readonly attributes?: Attributes
 }
 
 /**
@@ -138,10 +138,10 @@ export interface RetainOperation {
  * @returns {RetainOperation}
  */
 export function createRetainOperation(retain: number, attributes?: Attributes): RetainOperation {
-    return {
-        retain,
-        attributes,
-    }
+  return {
+    retain,
+    attributes,
+  }
 }
 
 /**
@@ -149,7 +149,7 @@ export function createRetainOperation(retain: number, attributes?: Attributes): 
  * @property {number} delete
  */
 export interface DeleteOperation {
-    readonly delete: number
+  readonly delete: number
 }
 
 /**
@@ -158,9 +158,9 @@ export interface DeleteOperation {
  * @returns {DeleteOperation}
  */
 export function createDeleteOperation(length: number): DeleteOperation {
-    return {
-        delete: length,
-    }
+  return {
+    delete: length,
+  }
 }
 
 /**
@@ -170,9 +170,9 @@ export function createDeleteOperation(length: number): DeleteOperation {
  * @property {Optional<Attributes>}
  */
 export interface SwapOperation {
-    readonly swap: DeltaType
-    readonly length: number
-    readonly attributes?: Attributes
+  readonly swap: DeltaType
+  readonly length: number
+  readonly attributes?: Attributes
 }
 
 /**
@@ -182,11 +182,11 @@ export interface SwapOperation {
  * @returns {RetainOperation}
  */
 export function createSwapOperation(swap: DeltaType, attributes?: Attributes): SwapOperation {
-    return {
-        swap,
-        length: 'string' === typeof swap ? swap.length : 1,
-        attributes,
-    }
+  return {
+    swap,
+    length: 'string' === typeof swap ? swap.length : 1,
+    attributes,
+  }
 }
 
 /**

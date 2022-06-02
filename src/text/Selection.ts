@@ -39,7 +39,7 @@
  * @property {number} x
  */
 export interface XPoint {
-    x: number
+  x: number
 }
 
 /**
@@ -49,8 +49,8 @@ export interface XPoint {
  * @property {number} dy
  */
 export interface XYDistance {
-    dx: number
-    dy: number
+  dx: number
+  dy: number
 }
 
 /**
@@ -60,8 +60,8 @@ export interface XYDistance {
  * @property {number} ly
  */
 export interface XYLength {
-    lx: number
-    ly: number
+  lx: number
+  ly: number
 }
 
 /**
@@ -70,9 +70,9 @@ export interface XYLength {
  * @returns {XPoint}
  */
 export function createXPoint(x = 0): XPoint {
-    return {
-        x,
-    }
+  return {
+    x,
+  }
 }
 
 /**
@@ -80,13 +80,13 @@ export function createXPoint(x = 0): XPoint {
  * @property {number} y
  */
 export interface YPoint {
-    y: number
+  y: number
 }
 
 export function createYPoint(y = 0): YPoint {
-    return {
-        y,
-    }
+  return {
+    y,
+  }
 }
 
 /**
@@ -103,10 +103,10 @@ export interface XYPoint extends XPoint, YPoint {
  * @param {number} y @default x
  */
 export function createXYPoint(x = 0, y = 0): XYPoint {
-    return {
-        x,
-        y,
-    }
+  return {
+    x,
+    y,
+  }
 }
 
 /**
@@ -117,8 +117,8 @@ export function createXYPoint(x = 0, y = 0): XYPoint {
  * @property {T} end
  */
 export interface Selection<T> {
-    start: T
-    end: T
+  start: T
+  end: T
 }
 
 /**
@@ -135,10 +135,10 @@ export type XSelection = Selection<XPoint>
  * @param {number} end @default start
  */
 export function createXSelection(start = 0, end = start): XSelection {
-    return {
-        start: createXPoint(start),
-        end: createXPoint(end),
-    }
+  return {
+    start: createXPoint(start),
+    end: createXPoint(end),
+  }
 }
 
 /**
@@ -156,10 +156,10 @@ export type YSelection = Selection<YPoint>
  * @param {number} end @default start
  */
 export function createYSelection(start = 0, end = start): YSelection {
-    return {
-        start: createYPoint(start),
-        end: createYPoint(end),
-    }
+  return {
+    start: createYPoint(start),
+    end: createYPoint(end),
+  }
 }
 
 /**
@@ -177,10 +177,10 @@ export type XYSelection = Selection<XYPoint>
  * @param {number} end @default start
  */
 export function createXYSelection(start: XYPoint = createXYPoint(), end: XYPoint = start): XYSelection {
-    return {
-        start,
-        end,
-    }
+  return {
+    start,
+    end,
+  }
 }
 
 /**
@@ -190,7 +190,7 @@ export function createXYSelection(start: XYPoint = createXYPoint(), end: XYPoint
  * @returns {boolean}
  */
 export function isBackwards(s: XSelection): boolean {
-    return s.start.x > s.end.x
+  return s.start.x > s.end.x
 }
 
 /**
@@ -200,7 +200,7 @@ export function isBackwards(s: XSelection): boolean {
  * @returns {boolean}
  */
 export function isTtoB(s: YSelection): boolean {
-    return s.start.y > s.end.y
+  return s.start.y > s.end.y
 }
 
 /**
@@ -210,7 +210,7 @@ export function isTtoB(s: YSelection): boolean {
  * @returns {XPoint}
  */
 export function fromX(s: XSelection): XPoint {
-    return isBackwards(s) ? s.end : s.start
+  return isBackwards(s) ? s.end : s.start
 }
 
 /**
@@ -220,7 +220,7 @@ export function fromX(s: XSelection): XPoint {
  * @returns {YPoint}
  */
 export function fromY(s: YSelection): YPoint {
-    return isTtoB(s) ? s.end : s.start
+  return isTtoB(s) ? s.end : s.start
 }
 
 /**
@@ -230,10 +230,10 @@ export function fromY(s: YSelection): YPoint {
  * @returns {XPoint}
  */
 export function fromXY(s: XYSelection): XYPoint {
-    return {
-        x: fromX(s).x,
-        y: fromY(s).y,
-    }
+  return {
+    x: fromX(s).x,
+    y: fromY(s).y,
+  }
 }
 
 /**
@@ -243,7 +243,7 @@ export function fromXY(s: XYSelection): XYPoint {
  * @returns {XPoint}
  */
 export function toX(s: XSelection): XPoint {
-    return isBackwards(s) ? s.start : s.end
+  return isBackwards(s) ? s.start : s.end
 }
 
 /**
@@ -253,7 +253,7 @@ export function toX(s: XSelection): XPoint {
  * @returns {YPoint}
  */
 export function toY(s: YSelection): YPoint {
-    return isTtoB(s) ? s.start : s.end
+  return isTtoB(s) ? s.start : s.end
 }
 
 /**
@@ -263,10 +263,10 @@ export function toY(s: YSelection): YPoint {
  * @returns {XPoint}
  */
 export function toXY(s: XYSelection): XYPoint {
-    return {
-        x: toX(s).x,
-        y: toY(s).y,
-    }
+  return {
+    x: toX(s).x,
+    y: toY(s).y,
+  }
 }
 
 /**
@@ -277,7 +277,7 @@ export function toXY(s: XYSelection): XYPoint {
  * @returns {boolean}
  */
 export function withinX(s: XSelection, p: XPoint): boolean {
-    return fromX(s).x <= p.x && p.x <= toX(s).x
+  return fromX(s).x <= p.x && p.x <= toX(s).x
 }
 
 /**
@@ -288,7 +288,7 @@ export function withinX(s: XSelection, p: XPoint): boolean {
  * @returns {boolean}
  */
 export function withinY(s: YSelection, p: YPoint): boolean {
-    return fromY(s).y <= p.y && p.y <= toY(s).y
+  return fromY(s).y <= p.y && p.y <= toY(s).y
 }
 
 /**
@@ -299,7 +299,7 @@ export function withinY(s: YSelection, p: YPoint): boolean {
  * @returns {boolean}
  */
 export function withinXY(s: XYSelection, p: XYPoint): boolean {
-    return withinX(s, p) && withinY(s, p)
+  return withinX(s, p) && withinY(s, p)
 }
 
 /**
@@ -309,7 +309,7 @@ export function withinXY(s: XYSelection, p: XYPoint): boolean {
  * @returns {boolean}
  */
 export function equalsX(a: XPoint, b: XPoint): boolean {
-    return a.x === b.x
+  return a.x === b.x
 }
 
 /**
@@ -319,7 +319,7 @@ export function equalsX(a: XPoint, b: XPoint): boolean {
  * @returns {boolean}
  */
 export function equalsY(a: YPoint, b: YPoint): boolean {
-    return a.y === b.y
+  return a.y === b.y
 }
 
 /**
@@ -329,7 +329,7 @@ export function equalsY(a: YPoint, b: YPoint): boolean {
  * @returns {boolean}
  */
 export function equalsXY(a: XYPoint, b: XYPoint): boolean {
-    return equalsX(a, b) && equalsY(a, b)
+  return equalsX(a, b) && equalsY(a, b)
 }
 
 /**
@@ -338,7 +338,7 @@ export function equalsXY(a: XYPoint, b: XYPoint): boolean {
  * @returns {number}
  */
 export function distanceX(s: XSelection): number {
-    return toX(s).x - fromX(s).x
+  return toX(s).x - fromX(s).x
 }
 
 /**
@@ -347,7 +347,7 @@ export function distanceX(s: XSelection): number {
  * @returns {number}
  */
 export function distanceY(s: YSelection): number {
-    return toY(s).y - fromY(s).y
+  return toY(s).y - fromY(s).y
 }
 
 /**
@@ -356,10 +356,10 @@ export function distanceY(s: YSelection): number {
  * @returns {XYDistance}
  */
 export function distanceXY(s: XYSelection): XYDistance {
-    return {
-        dx: distanceX(s),
-        dy: distanceY(s),
-    }
+  return {
+    dx: distanceX(s),
+    dy: distanceY(s),
+  }
 }
 
 /**
@@ -369,7 +369,7 @@ export function distanceXY(s: XYSelection): XYDistance {
  * @returns {number}
  */
 export function lengthX(s: XSelection): number {
-    return distanceX(s) + 1
+  return distanceX(s) + 1
 }
 
 /**
@@ -379,7 +379,7 @@ export function lengthX(s: XSelection): number {
  * @returns {number}
  */
 export function lengthY(s: YSelection): number {
-    return distanceY(s) + 1
+  return distanceY(s) + 1
 }
 
 /**
@@ -389,10 +389,10 @@ export function lengthY(s: YSelection): number {
  * @returns {XYLength}
  */
 export function lengthXY(s: XYSelection): XYLength {
-    return {
-        lx: lengthX(s),
-        ly: lengthY(s),
-    }
+  return {
+    lx: lengthX(s),
+    ly: lengthY(s),
+  }
 }
 
 /**
@@ -403,11 +403,11 @@ export function lengthXY(s: XYSelection): XYLength {
  * @param {Optional<boolean>} toEnd
  */
 export function collapseX(s: XSelection, toEnd?: boolean) {
-    if (toEnd) {
-        s.start = createXPoint(s.end.x)
-    } else {
-        s.end = createXPoint(s.start.x)
-    }
+  if (toEnd) {
+    s.start = createXPoint(s.end.x)
+  } else {
+    s.end = createXPoint(s.start.x)
+  }
 }
 
 /**
@@ -418,11 +418,11 @@ export function collapseX(s: XSelection, toEnd?: boolean) {
  * @param {Optional<boolean>} toEnd
  */
 export function collapseY(s: YSelection, toEnd?: boolean) {
-    if (toEnd) {
-        s.start = createYPoint(s.end.y)
-    } else {
-        s.end = createYPoint(s.start.y)
-    }
+  if (toEnd) {
+    s.start = createYPoint(s.end.y)
+  } else {
+    s.end = createYPoint(s.start.y)
+  }
 }
 
 /**
@@ -433,8 +433,8 @@ export function collapseY(s: YSelection, toEnd?: boolean) {
  * @param {Optional<boolean>} toEnd
  */
 export function collapseXY(s: XYSelection, toEnd?: boolean) {
-    collapseX(s, toEnd)
-    collapseY(s, toEnd)
+  collapseX(s, toEnd)
+  collapseY(s, toEnd)
 }
 
 /**
@@ -444,7 +444,7 @@ export function collapseXY(s: XYSelection, toEnd?: boolean) {
  * @returns {boolean}
  */
 export function isCollapsedX(s: XSelection): boolean {
-    return equalsX(s.start, s.end)
+  return equalsX(s.start, s.end)
 }
 
 /**
@@ -454,7 +454,7 @@ export function isCollapsedX(s: XSelection): boolean {
  * @returns {boolean}
  */
 export function isCollapsedY(s: YSelection): boolean {
-    return equalsY(s.start, s.end)
+  return equalsY(s.start, s.end)
 }
 
 /**
@@ -464,5 +464,5 @@ export function isCollapsedY(s: YSelection): boolean {
  * @returns {boolean}
  */
 export function isCollapsedXY(s: XYSelection): boolean {
-    return isCollapsedX(s) && isCollapsedY(s)
+  return isCollapsedX(s) && isCollapsedY(s)
 }

@@ -35,205 +35,205 @@
  */
 
 import {
-    async,
-    clone,
-    Voidable,
-    Optional,
-    Observable,
+  async,
+  clone,
+  Voidable,
+  Optional,
+  Observable,
 } from '@cosmicverse/foundation'
 
 import {
-    XSelection,
-    createXSelection,
+  XSelection,
+  createXSelection,
 } from './Selection'
 
 import {
-    Attributes,
-    createAttributes,
+  Attributes,
+  createAttributes,
 } from './Attributes'
 
 import {
-    Transaction,
-    createTransaction,
-    commit,
-    selectionFromTransaction,
-    deltaAt,
-    fetchAt,
+  Transaction,
+  createTransaction,
+  commit,
+  selectionFromTransaction,
+  deltaAt,
+  fetchAt,
 } from './Transaction'
 
 import {
-    Delta,
-    DeltaType,
-    Operation,
+  Delta,
+  DeltaType,
+  Operation,
 } from './Operation'
 
 /**
  * @extends {Observable}
  */
 export class Text extends Observable {
-    /**
-     * A reference to the selection of text.
-     * @type {XSelection}
-     */
-    readonly selection: XSelection
+  /**
+   * A reference to the selection of text.
+   * @type {XSelection}
+   */
+  readonly selection: XSelection
 
-    /**
-     * A reference to the `Attributes` instance. This value is
-     * the current configuration of attributes based on the
-     * `cursor` position.
-     * @type {Attributes}
-     */
-    readonly attributes: Attributes
+  /**
+   * A reference to the `Attributes` instance. This value is
+   * the current configuration of attributes based on the
+   * `cursor` position.
+   * @type {Attributes}
+   */
+  readonly attributes: Attributes
 
-    /**
-     * A reference to the `Delta` instances. This value is
-     * the current Array of Delta that makeup the `Text` body.
-     * @type {Delta[]}
-     */
-    readonly delta: Delta[]
+  /**
+   * A reference to the `Delta` instances. This value is
+   * the current Array of Delta that makeup the `Text` body.
+   * @type {Delta[]}
+   */
+  readonly delta: Delta[]
 
-    /**
-     * Returns the current length relative to the
-     * `Delta.length` values.
-     * @type {number}
-     */
-    get length(): number {
-        return this.delta.reduce((count, d) => count + d.length, 0)
+  /**
+   * Returns the current length relative to the
+   * `Delta.length` values.
+   * @type {number}
+   */
+  get length(): number {
+    return this.delta.reduce((count, d) => count + d.length, 0)
+  }
+
+  /**
+   * Class constructor.
+   * @param {Attributes} a @default {}
+   * @param {Delta[]} d @default []
+   */
+  constructor(a: Attributes = createAttributes(), d: Delta[] = []) {
+    super()
+    this.attributes = a
+    this.delta = d
+    this.selection = createXSelection()
+  }
+
+  /**
+   * Retrieves the `Delta` at the given position.
+   * @param {number} at
+   */
+  deltaAt(at: number): Optional<Delta> {
+    return deltaAt(at, this.delta)
+  }
+
+  /**
+   * Selects the `string` or `Block` at the given position.
+   * The `fetchAt` method accommodates the issue if a
+   * position falls within a string range where the character
+   * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
+   * @param {number} at
+   * @returns {Optional<DeltaType>}
+   */
+  fetchAt(at: number): Optional<DeltaType> {
+    return fetchAt(at, this.delta)
+  }
+
+  /**
+   * Creates a synchronous `Transaction` with the given `Operation` instances.
+   * As long as a value of `true` is not returned within the given `Transaction`
+   * block, the `Transaction` will commit its changes.
+   *
+   * @param {(tr: Transaction): Voidable<boolean>} fn
+   * @param {Optional<(t: Text, tr: Transaction) => void>} cb When the `callback`
+   * function is set, then the `beforeTransaction`, and `afterTransaction`
+   * event emitters are not executed.
+   * @returns {Transaction}
+   */
+  transactSync(fn: (tr: Transaction) => Voidable<boolean>, cb?: (t: Text, tr: Transaction) => void): Transaction {
+    const tr = createTransaction(this)
+
+    if (false !== fn(tr) && tr.operations.length) {
+      if ('undefined' === typeof cb) {
+        this.emitSync('beforeTransaction', this, tr)
+      }
+
+      commit(tr, this.delta)
+      updateSelection(tr, this.selection)
+
+      if ('undefined' !== typeof cb) {
+        cb.call(this, this, tr)
+      } else {
+        this.emitSync('afterTransaction', this, tr)
+      }
     }
 
-    /**
-     * Class constructor.
-     * @param {Attributes} a @default {}
-     * @param {Delta[]} d @default []
-     */
-    constructor(a: Attributes = createAttributes(), d: Delta[] = []) {
-        super()
-        this.attributes = a
-        this.delta = d
-        this.selection = createXSelection()
+    return tr
+  }
+
+  /**
+   * Creates an asynchronous `Transaction` with the given `Operation` instances.
+   * As long as a value of `true` is not returned within the given `Transaction`
+   * block, the `Transaction` will commit its changes.
+   *
+   * @param {(tr: Transaction): Voidable<boolean>} fn
+   * @param {Optional<(t: Text, tr: Transaction) => void>} cb When the `callback`
+   * function is set, then the `beforeTransaction`, and `afterTransaction`
+   * event emitters are not executed.
+   * @returns {Promise<Transaction>}
+   */
+  transactAsync(fn: (tr: Transaction) => Voidable<boolean>, cb?: (t: Text, tr: Transaction) => void): Promise<unknown> {
+    return async((): Voidable<Transaction> => {
+      const tr = createTransaction(this)
+
+      if (true === fn(tr) || 0 === tr.operations.length) {
+        throw new Error('Transaction has 0 operations.')
+      }
+
+      if ('undefined' === typeof cb) {
+        this.emitSync('beforeTransaction', this, tr)
+      }
+
+      commit(tr, this.delta)
+      updateSelection(tr, this.selection)
+
+      if ('undefined' !== typeof cb) {
+        cb.call(this, this, tr)
+      } else {
+        this.emitSync('afterTransaction', this, tr)
+      }
+
+      return tr
+    })
+  }
+
+  /**
+   * Simulates a `Transaction` on the given `Text`, but doesn't
+   * actually execute it on the `Text` itself. A copy is made
+   * and returned to the caller.
+   * @param {(tr: Transaction): Voidable<boolean>} fn
+   * @returns {Text}
+   */
+  transactSimulate(fn: (tr: Transaction) => Voidable<boolean>): Text {
+    const text = new Text(
+        clone(this.attributes) as Attributes,
+        clone(this.delta) as Delta[]
+    )
+
+    const tr = createTransaction(text)
+    if (false !== fn(tr) && tr.operations.length) {
+      commit(tr, text.delta)
+      updateSelection(tr, text.selection)
     }
 
-    /**
-     * Retrieves the `Delta` at the given position.
-     * @param {number} at
-     */
-    deltaAt(at: number): Optional<Delta> {
-        return deltaAt(at, this.delta)
-    }
+    return text
+  }
 
-    /**
-     * Selects the `string` or `Block` at the given position.
-     * The `fetchAt` method accommodates the issue if a
-     * position falls within a string range where the character
-     * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
-     * @param {number} at
-     * @returns {Optional<DeltaType>}
-     */
-    fetchAt(at: number): Optional<DeltaType> {
-        return fetchAt(at, this.delta)
-    }
-
-    /**
-     * Creates a synchronous `Transaction` with the given `Operation` instances.
-     * As long as a value of `true` is not returned within the given `Transaction`
-     * block, the `Transaction` will commit its changes.
-     *
-     * @param {(tr: Transaction): Voidable<boolean>} fn
-     * @param {Optional<(t: Text, tr: Transaction) => void>} cb When the `callback`
-     * function is set, then the `beforeTransaction`, and `afterTransaction`
-     * event emitters are not executed.
-     * @returns {Transaction}
-     */
-    transactSync(fn: (tr: Transaction) => Voidable<boolean>, cb?: (t: Text, tr: Transaction) => void): Transaction {
-        const tr = createTransaction(this)
-
-        if (false !== fn(tr) && tr.operations.length) {
-            if ('undefined' === typeof cb) {
-                this.emitSync('beforeTransaction', this, tr)
-            }
-
-            commit(tr, this.delta)
-            updateSelection(tr, this.selection)
-
-            if ('undefined' !== typeof cb) {
-                cb.call(this, this, tr)
-            } else {
-                this.emitSync('afterTransaction', this, tr)
-            }
-        }
-
-        return tr
-    }
-
-    /**
-     * Creates an asynchronous `Transaction` with the given `Operation` instances.
-     * As long as a value of `true` is not returned within the given `Transaction`
-     * block, the `Transaction` will commit its changes.
-     *
-     * @param {(tr: Transaction): Voidable<boolean>} fn
-     * @param {Optional<(t: Text, tr: Transaction) => void>} cb When the `callback`
-     * function is set, then the `beforeTransaction`, and `afterTransaction`
-     * event emitters are not executed.
-     * @returns {Promise<Transaction>}
-     */
-    transactAsync(fn: (tr: Transaction) => Voidable<boolean>, cb?: (t: Text, tr: Transaction) => void): Promise<unknown> {
-        return async((): Voidable<Transaction> => {
-            const tr = createTransaction(this)
-
-            if (true === fn(tr) || 0 === tr.operations.length) {
-                throw new Error('Transaction has 0 operations.')
-            }
-
-            if ('undefined' === typeof cb) {
-                this.emitSync('beforeTransaction', this, tr)
-            }
-
-            commit(tr, this.delta)
-            updateSelection(tr, this.selection)
-
-            if ('undefined' !== typeof cb) {
-                cb.call(this, this, tr)
-            } else {
-                this.emitSync('afterTransaction', this, tr)
-            }
-
-            return tr
-        })
-    }
-
-    /**
-     * Simulates a `Transaction` on the given `Text`, but doesn't
-     * actually execute it on the `Text` itself. A copy is made
-     * and returned to the caller.
-     * @param {(tr: Transaction): Voidable<boolean>} fn
-     * @returns {Text}
-     */
-    transactSimulate(fn: (tr: Transaction) => Voidable<boolean>): Text {
-        const text = new Text(
-            clone(this.attributes) as Attributes,
-            clone(this.delta) as Delta[]
-        )
-
-        const tr = createTransaction(text)
-        if (false !== fn(tr) && tr.operations.length) {
-            commit(tr, text.delta)
-            updateSelection(tr, text.selection)
-        }
-
-        return text
-    }
-
-    /**
-     * Applies the given `Operation` instances to the `Text`.
-     * @param {Operation[]} ops
-     */
-    apply(ops: Operation[]): void {
-        const tr = createTransaction(this, ops)
-        this.emitSync('beforeApply', this, ops)
-        commit(tr, this.delta)
-        updateSelection(tr, this.selection)
-        this.emitSync('afterApply', this, ops)
-    }
+  /**
+   * Applies the given `Operation` instances to the `Text`.
+   * @param {Operation[]} ops
+   */
+  apply(ops: Operation[]): void {
+    const tr = createTransaction(this, ops)
+    this.emitSync('beforeApply', this, ops)
+    commit(tr, this.delta)
+    updateSelection(tr, this.selection)
+    this.emitSync('afterApply', this, ops)
+  }
 }
 
 /**
@@ -245,6 +245,6 @@ export class Text extends Observable {
  * @param {XSelection} selection
  */
 const updateSelection = (tr: Transaction, selection: XSelection) => {
-    selection.start.x = selectionFromTransaction(tr, selection.start.x)
-    selection.end.x = selectionFromTransaction(tr, selection.end.x)
+  selection.start.x = selectionFromTransaction(tr, selection.start.x)
+  selection.end.x = selectionFromTransaction(tr, selection.end.x)
 }
