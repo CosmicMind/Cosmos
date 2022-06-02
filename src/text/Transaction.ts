@@ -340,8 +340,9 @@ export class Transaction {
    */
   delete(length: XSelection | number = 1) {
     if ('number' === typeof length) {
+      let len = length
 
-      assert(-1 < length, `Cannot delete length {${length}}. The value must be greater than or equal '0'`)
+      assert(-1 < length, `Cannot delete length {${len}}. The value must be greater than or equal '0'`)
 
       if (!this.#deleteIfNeeded()) {
         /**
@@ -354,15 +355,15 @@ export class Transaction {
          * will fall into that range. If the position element is
          * a `Block`, we can `delete` by `1` position safely.
          */
-        if (1 === length) {
+        if (1 === len) {
           const d = this.text.fetchAt(this.cursor - 1)
           if ('string' === typeof d) {
-            length = d.length
+            len = d.length
           }
         }
 
         if (0 < this.cursor) {
-          this.deleteAt(this.cursor - length, length)
+          this.deleteAt(this.cursor - len, len)
         }
       }
     }
@@ -784,6 +785,17 @@ export function simulate(ops: Operation[], delta: Delta[]): Delta[] {
   return processOperations([ ...ops ], [ ...delta ])
 }
 
+export function tester(a: number, fn: (a: number) => number) {
+  const b = a + 1
+  const c = {
+    b,
+    a,
+  }
+  fn(c.b)
+}
+
+tester(1, (a: number): number => a)
+
 /**
  * Minimizes the number of delta values, based on similar delta instances
  * being adjacent to each other.
@@ -825,25 +837,26 @@ export function minimizeDelta(delta: Delta[]): Delta[] {
  */
 export function selectionFromTransaction(tr: Transaction, position: number): number {
   let cursor = 0
+  let pos = position
 
   for (const op of tr.operations) {
     if ('retain' in op) {
       cursor += op.retain
     }
     else if ('delete' in op) {
-      if (position > cursor) {
-        position -= op.delete
+      if (pos > cursor) {
+        pos -= op.delete
       }
     }
     else if ('insert' in op) {
-      if (position >= cursor) {
+      if (pos >= cursor) {
         const length = op.length
-        position += length
+        pos += length
         cursor += length
       }
     }
 
-    if (cursor > position) {
+    if (cursor > pos) {
       break
     }
   }
@@ -860,7 +873,7 @@ export function selectionFromTransaction(tr: Transaction, position: number): num
    * The case is handled here, as a final check once all
    * `selections` have been updated.
    */
-  return 0 === position && tr.hasBlockAtFront ? 1 : position
+  return 0 === pos && tr.hasBlockAtFront ? 1 : pos
 }
 
 

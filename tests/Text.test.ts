@@ -957,7 +957,10 @@ test('Text: Q', async t => {
     createDeltaBlock(Block.paragraph),
     createDeltaText('Hello'),
     createDeltaText(' W', { bold: true }),
-    createDeltaText('o', { bold: true, underline: true }),
+    createDeltaText('o', {
+      bold: true,
+      underline: true,
+    }),
     createDeltaText('rld', { bold: true })
   ])
 
@@ -965,7 +968,10 @@ test('Text: Q', async t => {
     createDeltaBlock(Block.paragraph),
     createDeltaText('Hello'),
     createDeltaText(' W', { bold: true }),
-    createDeltaText('o', { bold: true, underline: true }),
+    createDeltaText('o', {
+      bold: true,
+      underline: true,
+    }),
     createDeltaText('rld', { bold: true })
   ])
 
@@ -990,7 +996,10 @@ test('Text: Q', async t => {
     createDeltaText('H'),
     createDeltaText('ello', { bold: false }),
     createDeltaText(' W', { bold: false }),
-    createDeltaText('o', { bold: false, underline: true }),
+    createDeltaText('o', {
+      bold: false,
+      underline: true,
+    }),
     createDeltaText('rld', { bold: true })
   ])
 })
@@ -1007,7 +1016,10 @@ test('Text: R', async t => {
     createDeltaText('o'),
     createDeltaText(' '),
     createDeltaText('W', { bold: true }),
-    createDeltaText('o', { bold: true, underline: true }),
+    createDeltaText('o', {
+      bold: true,
+      underline: true,
+    }),
     createDeltaText('r', { bold: true }),
     createDeltaText('l', { bold: true }),
     createDeltaText('d', { bold: true })
@@ -1022,7 +1034,10 @@ test('Text: R', async t => {
     createDeltaText('o'),
     createDeltaText(' '),
     createDeltaText('W', { bold: true }),
-    createDeltaText('o', { bold: true, underline: true }),
+    createDeltaText('o', {
+      bold: true,
+      underline: true,
+    }),
     createDeltaText('r', { bold: true }),
     createDeltaText('l', { bold: true }),
     createDeltaText('d', { bold: true })
@@ -1053,7 +1068,10 @@ test('Text: R', async t => {
     createDeltaText('o', { bold: false }),
     createDeltaText(' ', { bold: false }),
     createDeltaText('W', { bold: false }),
-    createDeltaText('o', { bold: false, underline: true }),
+    createDeltaText('o', {
+      bold: false,
+      underline: true,
+    }),
     createDeltaText('r', { bold: true }),
     createDeltaText('l', { bold: true }),
     createDeltaText('d', { bold: true })
@@ -1084,7 +1102,10 @@ test('Text: R', async t => {
     createDeltaText('o', { bold: false }),
     createDeltaText(' ', { bold: false }),
     createDeltaText('W', { bold: false }),
-    createDeltaText('o', { bold: false, underline: true }),
+    createDeltaText('o', {
+      bold: false,
+      underline: true,
+    }),
     createDeltaText('r', { bold: false }),
     createDeltaText('l', { bold: true }),
     createDeltaText('d', { bold: true })
