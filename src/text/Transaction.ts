@@ -365,7 +365,8 @@ export class Transaction {
           this.deleteAt(this.cursor - length, length)
         }
       }
-    } else {
+    }
+    else {
       this.delete(lengthX(length))
     }
   }
@@ -521,7 +522,8 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
         if (anchor >= dPos + dLength) {
           dPos += dLength
           ++i
-        } else if (anchor > dPos) {
+        }
+        else if (anchor > dPos) {
           if ('string' === typeof d.insert) {
             const split = anchor - dPos
             delta.splice(i, 1, createDelta(d.insert.slice(0, split), d.attributes))
@@ -530,11 +532,13 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
 
           ++i
           dPos = anchor
-        } else if (cursor >= dPos + dLength) {
+        }
+        else if (cursor >= dPos + dLength) {
           delta.splice(i, 1, createDelta(d.insert, Object.assign(clone(d.attributes), op.attributes)))
           dPos += dLength
           ++i
-        } else if (cursor > dPos) {
+        }
+        else if (cursor > dPos) {
           if ('string' === typeof d.insert) {
             const split = cursor - dPos
             delta.splice(i, 1, createDelta(d.insert.slice(0, split), Object.assign(clone(d.attributes), op.attributes)))
@@ -546,12 +550,14 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
           ++q
           ++i
           anchor = undefined
-        } else {
+        }
+        else {
           ++q
           ++i
           anchor = undefined
         }
-      } else {
+      }
+      else {
         cursor += op.retain
 
         ++q
@@ -608,13 +614,15 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
 
         if ('string' === typeof d.insert) {
           delta.splice(i + 1, 0, createDelta(d.insert.slice(1), d.attributes))
-        } else {
+        }
+        else {
           dPos += opLength
         }
 
         ++q
         ++i
-      } else if (cursor > dPos) {
+      }
+      else if (cursor > dPos) {
         if ('string' === typeof d.insert) {
           const split = cursor - dPos
           delta.splice(i, 1, op)
@@ -651,20 +659,24 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
       if (cursor >= dPos + dLength) {
         dPos += dLength
         ++i
-      } else {
+      }
+      else {
         if ('string' === typeof d.insert) {
           if (cursor === dPos) {
             if (dLength > op.delete) {
               delta.splice(i, 1, createDelta(d.insert.slice(op.delete), d.attributes))
               ++q
-            } else if (dLength === op.delete) {
+            }
+            else if (dLength === op.delete) {
               delta.splice(i, 1)
               ++q
-            } else if (dLength < op.delete) {
+            }
+            else if (dLength < op.delete) {
               delta.splice(i, 1)
               ops.splice(q, 1, createDeleteOperation(op.delete - dLength))
             }
-          } else if (cursor > dPos) {
+          }
+          else if (cursor > dPos) {
             const split = cursor - dPos
 
             delta.splice(i, 1, createDelta(d.insert.slice(0, split), d.attributes))
@@ -673,13 +685,15 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
             dPos = cursor
             ++i
           }
-        } else {
+        }
+        else {
           delta.splice(i, 1)
           dPos = cursor
 
           if (1 < op.delete) {
             op = ops[q] = createDeleteOperation(op.delete - 1)
-          } else {
+          }
+          else {
             ++q
           }
         }
@@ -737,7 +751,8 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
         ++i
         dPos += opLength
         cursor = dPos
-      } else if (cursor > dPos) {
+      }
+      else if (cursor > dPos) {
         if ('string' === typeof d.insert) {
           const split = cursor - dPos
 
@@ -814,11 +829,13 @@ export function selectionFromTransaction(tr: Transaction, position: number): num
   for (const op of tr.operations) {
     if ('retain' in op) {
       cursor += op.retain
-    } else if ('delete' in op) {
+    }
+    else if ('delete' in op) {
       if (position > cursor) {
         position -= op.delete
       }
-    } else if ('insert' in op) {
+    }
+    else if ('insert' in op) {
       if (position >= cursor) {
         const length = op.length
         position += length

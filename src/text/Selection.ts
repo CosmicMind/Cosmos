@@ -405,7 +405,8 @@ export function lengthXY(s: XYSelection): XYLength {
 export function collapseX(s: XSelection, toEnd?: boolean) {
   if (toEnd) {
     s.start = createXPoint(s.end.x)
-  } else {
+  }
+  else {
     s.end = createXPoint(s.start.x)
   }
 }
@@ -420,7 +421,8 @@ export function collapseX(s: XSelection, toEnd?: boolean) {
 export function collapseY(s: YSelection, toEnd?: boolean) {
   if (toEnd) {
     s.start = createYPoint(s.end.y)
-  } else {
+  }
+  else {
     s.end = createYPoint(s.start.y)
   }
 }

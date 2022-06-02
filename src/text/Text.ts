@@ -157,7 +157,8 @@ export class Text extends Observable {
 
       if ('undefined' !== typeof cb) {
         cb.call(this, this, tr)
-      } else {
+      }
+      else {
         this.emitSync('afterTransaction', this, tr)
       }
     }
@@ -193,7 +194,8 @@ export class Text extends Observable {
 
       if ('undefined' !== typeof cb) {
         cb.call(this, this, tr)
-      } else {
+      }
+      else {
         this.emitSync('afterTransaction', this, tr)
       }
 
