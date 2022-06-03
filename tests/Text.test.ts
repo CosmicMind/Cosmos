@@ -43,7 +43,7 @@ import {
   createSwapOperation,
 } from '../src'
 
-test('Text: A', async t => {
+test('Text: A', t => {
   const text = new Text()
 
   text.transactSync(tr => {
@@ -74,7 +74,7 @@ test('Text: A', async t => {
   ])
 })
 
-test('Text: B', async t => {
+test('Text: B', t => {
   const text = new Text()
 
   text.transactSync(tr => {
@@ -114,7 +114,7 @@ test('Text: B', async t => {
   ])
 })
 
-test('Text: C', async t => {
+test('Text: C', t => {
   const text = new Text()
 
   text.apply([
@@ -163,7 +163,7 @@ test('Text: C', async t => {
   ])
 })
 
-test('Text: D', async t => {
+test('Text: D', t => {
   const text = new Text()
 
   text.apply([
@@ -193,7 +193,7 @@ test('Text: D', async t => {
   ])
 })
 
-test('Text: E', async t => {
+test('Text: E', t => {
   const text = new Text()
 
   text.apply([
@@ -213,7 +213,7 @@ test('Text: E', async t => {
   ])
 })
 
-test('Text: F', async t => {
+test('Text: F', t => {
   const text = new Text()
 
   text.apply([
@@ -282,7 +282,7 @@ test('Text: F', async t => {
   ])
 })
 
-test('Text: G', async t => {
+test('Text: G', t => {
   const text = new Text()
 
   text.transactSync(tr => {
@@ -394,7 +394,7 @@ test('Text: G', async t => {
   ])
 })
 
-test('Text: H', async t => {
+test('Text: H', t => {
   const text = new Text()
 
   text.apply([
@@ -446,7 +446,7 @@ test('Text: H', async t => {
   ])
 })
 
-test('Text: I', async t => {
+test('Text: I', t => {
   const text = new Text()
 
   text.apply([
@@ -494,7 +494,7 @@ test('Text: I', async t => {
   ])
 })
 
-test('Text: J', async t => {
+test('Text: J', t => {
   const text = new Text()
 
   text.apply([
@@ -525,7 +525,7 @@ test('Text: J', async t => {
   ])
 })
 
-test('Text: K', async t => {
+test('Text: K', t => {
   const text = new Text()
 
   text.apply([
@@ -561,7 +561,7 @@ test('Text: K', async t => {
   ])
 })
 
-test('Text: L', async t => {
+test('Text: L', t => {
   const text = new Text()
 
   text.transactSync(tr => {
@@ -722,7 +722,7 @@ test('Text: L', async t => {
   ])
 })
 
-test('Text: M', async t => {
+test('Text: M', t => {
   const text = new Text()
 
   text.transactSync(tr => {
@@ -764,7 +764,7 @@ test('Text: M', async t => {
   ])
 })
 
-test('Text: N', async t => {
+test('Text: N', t => {
   const text = new Text()
 
   text.transactSync(tr => {
@@ -802,7 +802,7 @@ test('Text: N', async t => {
   ])
 })
 
-test('Text: O', async t => {
+test('Text: O', t => {
   const text = new Text()
 
   text.transactSync(tr => {
@@ -881,7 +881,7 @@ test('Text: O', async t => {
   ])
 })
 
-test('Text: P', async t => {
+test('Text: P', t => {
   const text = new Text()
 
   text.transactSync(tr => {
@@ -950,7 +950,7 @@ test('Text: P', async t => {
   ])
 })
 
-test('Text: Q', async t => {
+test('Text: Q', t => {
   const text = new Text()
 
   text.apply([
@@ -1004,7 +1004,7 @@ test('Text: Q', async t => {
   ])
 })
 
-test('Text: R', async t => {
+test('Text: R', t => {
   const text = new Text()
 
   text.apply([

@@ -68,6 +68,19 @@ import {
 } from './Operation'
 
 /**
+ * Updates the `cursor` for the given `Transaction.
+ * It relatively updates the `x` values for the
+ * `XSelection` points by using the `Transaction`
+ * operations.
+ * @param {Transaction} tr
+ * @param {XSelection} selection
+ */
+export const updateSelection = (tr: Transaction, selection: XSelection) => {
+  selection.start.x = selectionFromTransaction(tr, selection.start.x)
+  selection.end.x = selectionFromTransaction(tr, selection.end.x)
+}
+
+/**
  * @extends {Observable}
  */
 export class Text extends Observable {
@@ -152,7 +165,7 @@ export class Text extends Observable {
         this.emitSync('beforeTransaction', this, tr)
       }
 
-      commit(tr, this.delta)
+      commit(tr.operations, this.delta)
       updateSelection(tr, this.selection)
 
       if ('undefined' !== typeof cb) {
@@ -189,7 +202,7 @@ export class Text extends Observable {
         this.emitSync('beforeTransaction', this, tr)
       }
 
-      commit(tr, this.delta)
+      commit(tr.operations, this.delta)
       updateSelection(tr, this.selection)
 
       if ('undefined' !== typeof cb) {
@@ -218,7 +231,7 @@ export class Text extends Observable {
 
     const tr = createTransaction(text)
     if (false !== fn(tr) && tr.operations.length) {
-      commit(tr, text.delta)
+      commit(tr.operations, text.delta)
       updateSelection(tr, text.selection)
     }
 
@@ -232,21 +245,9 @@ export class Text extends Observable {
   apply(ops: Operation[]): void {
     const tr = createTransaction(this, ops)
     this.emitSync('beforeApply', this, ops)
-    commit(tr, this.delta)
+    commit(tr.operations, this.delta)
     updateSelection(tr, this.selection)
     this.emitSync('afterApply', this, ops)
   }
 }
 
-/**
- * Updates the `cursor` for the given `Transaction.
- * It relatively updates the `x` values for the
- * `XSelection` points by using the `Transaction`
- * operations.
- * @param {Transaction} tr
- * @param {XSelection} selection
- */
-const updateSelection = (tr: Transaction, selection: XSelection) => {
-  selection.start.x = selectionFromTransaction(tr, selection.start.x)
-  selection.end.x = selectionFromTransaction(tr, selection.end.x)
-}

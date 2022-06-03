@@ -39,6 +39,7 @@ import {
   assert,
   equals,
   Optional,
+  Nullable,
 } from '@cosmicverse/foundation'
 
 import { glyphs } from './Glyphs'
@@ -69,404 +70,130 @@ import { Text } from './Text'
 import { Attributes } from './Attributes'
 
 /**
- * Creates a new `Transaction` instance.
- * @param {Text} t
- * @param {Operation[]} [ops=[]]
- * @returns {Transaction}
- */
-export function createTransaction(t: Text, ops: Operation[] = []): Transaction {
-  return new Transaction(t, ops)
-}
-
-/**
- * A `Transaction` represents a proposed set of operations that
- * will be compared against the current `Text.delta` values.
- */
-export class Transaction {
-  /**
-   * Internal `cursor` reference.
-   * @type {number}
-   */
-  #cursor: number
-
-  /**
-   * The position that the `Transaction`
-   * will execute the current `Operation`.
-   * @type {number}
-   */
-  get cursor(): number {
-    return this.#cursor
-  }
-
-  /**
-   * A reference to the `Text` instance.
-   */
-  readonly text: Text
-
-  /**
-   * A reference to the `XSelection` instance.
-   * @type {XSelection}
-   */
-  get selection(): XSelection {
-    return this.text.selection
-  }
-
-  /**
-   * A reference to the `Attributes` instance.
-   * @type {Attributes}
-   */
-  get attributes(): Attributes {
-    return this.text.attributes
-  }
-
-  /**
-   * A reference to the `Delta` instance.
-   * @type {Delta[]}
-   */
-  get delta(): Delta[] {
-    return this.text.delta
-  }
-
-  /**
-   * Holds the `Operation` instances.
-   * @type {Operation[]}
-   */
-  readonly operations: Operation[]
-
-  /**
-   * Internal reference to `hasBlockAtFront`.
-   * @type {boolean}
-   */
-  #hasBlockAtFront: boolean
-
-  /**
-   * A boolean flag that indicates if the
-   * `ensureBlockAtFront` method has been
-   * used.
-   * @type {boolean}
-   */
-  get hasBlockAtFront(): boolean {
-    return this.#hasBlockAtFront
-  }
-
-  /**
-   * Class constructor.
-   * @param {Text} t
-   * @param {Operation[]} ops @default []
-   */
-  constructor(t: Text, ops: Operation[] = []) {
-    this.text = t
-    this.operations = ops
-
-    /**
-     * The initial position is always the `from.x` value
-     * for the given `cursor`.
-     */
-    this.#cursor = fromX(this.selection).x
-    this.#hasBlockAtFront = false
-  }
-
-  /**
-   * Pushes new `Operation` instances at the `end`
-   * of the `Operation` list.
-   * @param {...Operation} ops
-   */
-  push(...ops: Operation[]) {
-    this.operations.push(...ops)
-  }
-
-  /**
-   * Pushes new `Operation` instances at the `start`
-   * of the `Operation` list.
-   * @param {...Operation} ops
-   */
-  unshift(...ops: Operation[]) {
-    this.operations.unshift(...ops)
-  }
-
-  /**
-   * Inserts a new `Delta` instance.
-   * @param {string} content
-   * @param {Optional<Attributes>} attributes
-   */
-  insert(content: string, attributes?: Attributes) {
-    this.insertAt(this.cursor, content, attributes)
-  }
-
-  /**
-   * Inserts a new `Delta` instance `at` the given position.
-   * @param {number} at
-   * @param {string} content
-   * @param {Optional<Attributes>} attributes
-   */
-  insertAt(at: number, content: string, attributes?: Attributes) {
-    if (!this.#deleteIfNeeded()) {
-      this.#retainIfNeeded(at)
-    }
-
-    const op = createDelta(content, clone(attributes))
-    this.#cursor += op.length
-    this.push(op)
-  }
-
-  /**
-   * Inserts an `DeltaBlock` for the given `BlockType`.
-   * @param {BlockType} block @default Block.paragraph
-   * @param {Optional<Attributes>} attributes
-   */
-  block(block: BlockType = Block.paragraph, attributes?: Attributes) {
-    this.blockAt(this.cursor, block, attributes)
-  }
-
-  /**
-   * Inserts an `DeltaBlock` for the given `BlockType`,
-   * `at` the given position.
-   * @param {number} at
-   * @param {BlockType} block @default Block.paragraph
-   * @param {Optional<Attributes>} attributes
-   */
-  blockAt(at: number, block: BlockType = Block.paragraph, attributes?: Attributes) {
-    if (!this.#deleteIfNeeded()) {
-      this.#retainIfNeeded(at)
-    }
-
-    ++this.#cursor
-    this.push(createDeltaBlock(block, clone(attributes)))
-  }
-
-  /**
-   * Converts the `BlockType` at the `cursor` position.
-   * @param {BlockType} block
-   * @param {Optional<Attributes>} attributes
-   */
-  convert(block: BlockType, attributes?: Attributes) {
-    this.convertAt(this.cursor, block, attributes)
-  }
-
-  /**
-   * Converts the `BlockType` `at` the given position.
-   * @param {number} at
-   * @param {BlockType} block
-   * @param {Optional<Attributes>} attributes
-   */
-  convertAt(at: number, block: BlockType, attributes?: Attributes) {
-    if (!this.#deleteIfNeeded()) {
-      this.#retainIfNeeded(at)
-    }
-
-    ++this.#cursor
-    this.push(createSwapOperation({ block }, clone(attributes)))
-  }
-
-  /**
-   * A boolean check that determines if a `Block`
-   * will be added, up to the point of the current
-   * operations set.
-   */
-  get willInsertBlockAtFront(): boolean {
-    const d = simulate(this.operations, this.delta)[0]
-    return 'undefined' === typeof d || 'string' === typeof d.insert
-  }
-
-  /**
-   * If the location before the current `cursor` position is a `BlockType`
-   * and different from the given `block` instance, then it converts
-   * the previous `BlockType` and doesn't insert a new one.
-   * @param {BlockType} block
-   * @returns {boolean}
-   */
-  convertIfNeeded(block: BlockType): boolean {
-    if (0 < this.cursor) {
-      const at = this.cursor - 1
-      const insert = this.text.fetchAt(at)
-      if ('object' === typeof insert && block != insert.block) {
-        this.convertAt(at, block)
-        return true
-      }
-    }
-    this.block(block)
-    return false
-  }
-
-
-  /**
-   * Replaces the `string` at the `cursor` position.
-   * @param {string} content
-   * @param {Optional<Attributes>} attributes
-   */
-  replace(content: string, attributes?: Attributes) {
-    this.replaceAt(this.cursor, content, attributes)
-  }
-
-  /**
-   * Replaces the `string` `at` the given position.
-   * @param {number} at
-   * @param {string} content
-   * @param {Optional<Attributes>} attributes
-   */
-  replaceAt(at: number, content: string, attributes?: Attributes) {
-    if (!this.#deleteIfNeeded()) {
-      this.#retainIfNeeded(at)
-    }
-
-    this.#cursor += content.length
-    this.push(createSwapOperation(content, clone(attributes)))
-  }
-
-  /**
-   * Formats the `Selection` of characters at the `cursor` position.
-   * @param {Attributes} attributes
-   */
-  format(attributes: Attributes) {
-    this.formatAt(this.cursor, distanceX(this.selection), attributes)
-  }
-
-  /**
-   * Formats the `length` of characters `at` the given position.
-   * @param {number} at
-   * @param {number} length
-   * @param {Attributes} attributes
-   */
-  formatAt(at: number, length: number, attributes: Attributes) {
-    this.#retainIfNeeded(at)
-    this.push(createRetainOperation(length, attributes))
-    Object.assign(this.attributes, attributes)
-  }
-
-  /**
-   * Deletes the `selection` of characters if a selection exists, or deletes the
-   * length of `glyphs`.
-   * @param {XSelection | number} length @default 1
-   */
-  delete(length: XSelection | number = 1) {
-    if ('number' === typeof length) {
-      let len = length
-
-      assert(-1 < length, `Cannot delete length {${len}}. The value must be greater than or equal '0'`)
-
-      if (!this.#deleteIfNeeded()) {
-        /**
-         * Initially we look if the `Selection` has collapsed.
-         * If so, then we subtract the current cursor by `1`,
-         * in order to delete a given position to the left of
-         * the cursor. We utilize the `fetchAt` method in order
-         * to accommodate an issue if the position to the left
-         * has a string length greater than `1` and the cursor
-         * will fall into that range. If the position element is
-         * a `Block`, we can `delete` by `1` position safely.
-         */
-        if (1 === len) {
-          const d = this.text.fetchAt(this.cursor - 1)
-          if ('string' === typeof d) {
-            len = d.length
-          }
-        }
-
-        if (0 < this.cursor) {
-          this.deleteAt(this.cursor - len, len)
-        }
-      }
-    }
-    else {
-      this.delete(lengthX(length))
-    }
-  }
-
-  /**
-   * Deletes the `length` of glyphs starting `at` the given position.
-   * @param {number} at
-   * @param {number} length
-   */
-  deleteAt(at: number, length: number) {
-    this.#retainIfNeeded(at)
-
-    if (length) {
-      this.push(createDeleteOperation(length))
-    }
-  }
-
-  /**
-   * Clears the entire `Delta` array.
-   */
-  clear() {
-    this.deleteAt(0, this.text.length)
-  }
-
-  retain(at: number) {
-    assert(0 <= at, `Cannot retain {${at}} number.`)
-
-    this.#cursor += at
-
-    /**
-     * Even though a valid value of `0` is retained,
-     * we don't need to create the operation, as the
-     * position will already be in the correct place.
-     */
-    if (0 < at) {
-      this.push(createRetainOperation(at))
-    }
-  }
-
-  /**
-   * Inserts a `Block.paragraph` operation if needed.
-   * @returns {boolean}
-   */
-  ensureBlockAtFront(): boolean {
-    this.#hasBlockAtFront = true
-
-    if (this.willInsertBlockAtFront) {
-      ++this.#cursor
-      this.unshift(createDeltaBlock(Block.paragraph))
-      return true
-    }
-
-    return false
-  }
-
-  /**
-   * Sets the `cursor` to the given `at` value.
-   * @param {number} at
-   */
-  #retainIfNeeded(at: number) {
-    if (at <= this.cursor) {
-      this.#cursor = 0
-    }
-
-    this.retain(at - this.cursor)
-  }
-
-  /**
-   * Deletes the selection if it's not collapsed.
-   * The `boolean` result indicates whether there
-   * has been a selection that was deleted.
-   * @returns {boolean}
-   */
-  #deleteIfNeeded(): boolean {
-    if (isCollapsedX(this.selection)) {
-      return false
-    }
-
-    this.deleteAt(this.cursor, distanceX(this.selection))
-
-    return true
-  }
-}
-
-/**
- * Processes the given `Operation` list and `Delta` list,
- * and derives a new `Delta` list result.
- * @param {Transaction} tr
+ * Minimizes the number of delta values, based on similar delta instances
+ * being adjacent to each other.
+ *
  * @param {Delta[]} delta
  * @returns {Delta[]}
  */
-export function commit(tr: Transaction, delta: Delta[]): Delta[] {
-  /**
-   * The `Transaction.operations` are copied, as the `Delta`
-   * instances are iterated through, creating possible
-   * operation value compensations, for example in
-   * `DeleteOperation` instances.
-   */
-  return processOperations([ ...tr.operations ], delta, tr)
+export const minimizeDelta = (delta: Delta[]): Delta[] => {
+  let i = 1
+  let l = delta.length
+  let p: Optional<Delta> = delta[0] /// previous `Delta`
+  let n: Optional<Delta> /// next `Delta`
+
+  while (i < l) {
+    n = delta[i]
+
+    if ('string' === typeof p.insert &&
+        'string' === typeof n.insert &&
+        equals(p.attributes, n.attributes)) {
+      p = createDeltaText(p.insert + n.insert, p.attributes)
+      delta.splice(i - 1, 1, p)
+      delta.splice(i, 1)
+      --l
+      continue
+    }
+
+    p = n
+    ++i
+  }
+
+  return delta
+}
+
+/**
+ * Selects the `string` or `Block` at the given position.
+ * The `fetchAt` method accommodates the issue if a
+ * position falls within a string range where the character
+ * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
+ *
+ * @param {number} at
+ * @param {Delta[]} delta
+ * @returns {Optional<DeltaType>}
+ */
+export const fetchAt = (at: number, delta: Delta[]): Nullable<DeltaType> => {
+  let pos = 0
+
+  for (const d of delta) {
+    /**
+     * In this case we can extract the character at the given value.
+     */
+    if ('string' === typeof d.insert) {
+      let l = d.insert.length
+
+      /**
+       * Initial consider that the string length of the `Operation`
+       * may be less than the `at` value, plus the `p` position.
+       * We can skip ahead in this case.
+       */
+      if (pos + l < at) {
+        pos += l
+        continue
+      }
+
+      /**
+       * Get the `Glyphs` of the `insert` string, as we want
+       * to get the value `at` that may be a character, such as
+       * '👨‍👨‍👧‍👧' that has a length greater than 1.
+       */
+      const g = glyphs(d.insert)
+
+      for (const t of g) {
+        l = t.length
+
+        /**
+         * We compensate for the single `-1` value, since the
+         * `l` value will have a `+1` as it includes length, and
+         * we need it to be adjusted for `p` position, which is
+         * always less `1`.
+         */
+        if (pos + l - 1 === at) {
+          return t
+        }
+
+        pos += l
+      }
+    }
+
+    /**
+     * This handles the case where we hit a `BlockType`
+     * and, blocks only add a value of `+1`.
+     */
+    else {
+      if (pos === at) {
+        return d.insert
+      }
+
+      ++pos
+    }
+  }
+
+  return null
+}
+
+/**
+ * Retrieves the `Delta` at the given position.
+ *
+ * @param {number} at
+ * @param {Delta[]} delta
+ * @returns {Optional<Delta>}
+ */
+export const deltaAt = (at: number, delta: Delta[]): Nullable<Delta> => {
+  let pos = 0
+  let l = 0
+
+  for (const d of delta) {
+    l = d.length
+
+    if (pos + l > at) {
+      return d
+    }
+
+    pos += l
+  }
+
+  return null
 }
 
 /**
@@ -478,7 +205,7 @@ export function commit(tr: Transaction, delta: Delta[]): Delta[] {
  * @param {Optional<Transaction>} tr
  * @returns {Delta[]}
  */
-export function processOperations(ops: Operation[], delta: Delta[], tr?: Transaction): Delta[] {
+export const processOperations = (ops: Operation[], delta: Delta[]): Delta[] => {
   let cursor = 0
   let i = 0 /// `Delta` iterator position.
   let d: Optional<Delta> /// `Delta`.
@@ -489,7 +216,7 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
   let op: Optional<Operation> = ops[q]
 
   /// The initial position of the cursor when formatting.
-  let anchor: Optional<number>
+  let anchor = 0
 
   while ('undefined' !== typeof op) {
     /**
@@ -503,8 +230,8 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
        * formatting options that have been set in the
        * `op.attributes` property.
        */
-      if ('undefined' !== typeof op.attributes && 'undefined' !== typeof tr) {
-        if ('undefined' === typeof anchor) {
+      if ('undefined' !== typeof op.attributes) {
+        if (0 === anchor) {
           anchor = cursor
           cursor += op.retain
         }
@@ -513,7 +240,7 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
 
         if ('undefined' === typeof d) {
           ++q
-          anchor = undefined
+          anchor = 0
           op = ops[q]
           continue
         }
@@ -550,19 +277,19 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
 
           ++q
           ++i
-          anchor = undefined
+          anchor = 0
         }
         else {
           ++q
           ++i
-          anchor = undefined
+          anchor = 0
         }
       }
       else {
         cursor += op.retain
 
         ++q
-        anchor = undefined
+        anchor = 0
       }
     }
 
@@ -775,57 +502,411 @@ export function processOperations(ops: Operation[], delta: Delta[], tr?: Transac
 }
 
 /**
+ * Processes the given `Operation` list and `Delta` list,
+ * and derives a new `Delta` list result.
+ * @param {Operation[]} ops
+ * @param {Delta[]} delta
+ * @returns {Delta[]}
+ */
+export const commit = (ops: Operation[], delta: Delta[]): Delta[] =>
+  /**
+   * The `Transaction.operations` are copied, as the `Delta`
+   * instances are iterated through, creating possible
+   * operation value compensations, for example in
+   * `DeleteOperation` instances.
+   */
+  processOperations([ ...ops ], delta)
+
+/**
  * Simulates the list of `Operation` values on a `Delta` list.
  *
  * @param {Operation[]} ops
  * @param {Delta[]} delta
  * @returns {Delta[]}
  */
-export function simulate(ops: Operation[], delta: Delta[]): Delta[] {
-  return processOperations([ ...ops ], [ ...delta ])
-}
-
-export function tester(a: number, fn: (a: number) => number) {
-  const b = a + 1
-  const c = {
-    b,
-    a,
-  }
-  fn(c.b)
-}
-
-tester(1, (a: number): number => a)
+export const simulate = (ops: Operation[], delta: Delta[]): Delta[] => processOperations([ ...ops ], [ ...delta ])
 
 /**
- * Minimizes the number of delta values, based on similar delta instances
- * being adjacent to each other.
- *
- * @param {Delta[]} delta
- * @returns {Delta[]}
+ * A `Transaction` represents a proposed set of operations that
+ * will be compared against the current `Text.delta` values.
  */
-export function minimizeDelta(delta: Delta[]): Delta[] {
-  let i = 1
-  let l = delta.length
-  let p: Optional<Delta> = delta[0] /// previous `Delta`
-  let n: Optional<Delta> /// next `Delta`
+export class Transaction {
+  /**
+   * Internal `cursor` reference.
+   * @type {number}
+   */
+  #cursor: number
 
-  while (i < l) {
-    n = delta[i]
-    if ('string' === typeof p.insert &&
-        'string' === typeof n.insert &&
-        equals(p.attributes, n.attributes)) {
-      p = createDeltaText(p.insert + n.insert, p.attributes)
-      delta.splice(i - 1, 1, p)
-      delta.splice(i, 1)
-      --l
-      continue
-    }
-    p = n
-    ++i
+  /**
+   * The position that the `Transaction`
+   * will execute the current `Operation`.
+   * @type {number}
+   */
+  get cursor(): number {
+    return this.#cursor
   }
 
-  return delta
+  /**
+   * A reference to the `Text` instance.
+   */
+  readonly text: Text
+
+  /**
+   * A reference to the `XSelection` instance.
+   * @type {XSelection}
+   */
+  get selection(): XSelection {
+    return this.text.selection
+  }
+
+  /**
+   * A reference to the `Attributes` instance.
+   * @type {Attributes}
+   */
+  get attributes(): Attributes {
+    return this.text.attributes
+  }
+
+  /**
+   * A reference to the `Delta` instance.
+   * @type {Delta[]}
+   */
+  get delta(): Delta[] {
+    return this.text.delta
+  }
+
+  /**
+   * Holds the `Operation` instances.
+   * @type {Operation[]}
+   */
+  readonly operations: Operation[]
+
+  /**
+   * Internal reference to `hasBlockAtFront`.
+   * @type {boolean}
+   */
+  #hasBlockAtFront: boolean
+
+  /**
+   * A boolean flag that indicates if the
+   * `ensureBlockAtFront` method has been
+   * used.
+   * @type {boolean}
+   */
+  get hasBlockAtFront(): boolean {
+    return this.#hasBlockAtFront
+  }
+
+  /**
+   * Class constructor.
+   * @param {Text} t
+   * @param {Operation[]} ops @default []
+   */
+  constructor(t: Text, ops: Operation[] = []) {
+    this.text = t
+    this.operations = ops
+
+    /**
+     * The initial position is always the `from.x` value
+     * for the given `cursor`.
+     */
+    this.#cursor = fromX(this.selection).x
+    this.#hasBlockAtFront = false
+  }
+
+  /**
+   * Pushes new `Operation` instances at the `end`
+   * of the `Operation` list.
+   * @param {...Operation} ops
+   */
+  push(...ops: Operation[]) {
+    this.operations.push(...ops)
+  }
+
+  /**
+   * Pushes new `Operation` instances at the `start`
+   * of the `Operation` list.
+   * @param {...Operation} ops
+   */
+  unshift(...ops: Operation[]) {
+    this.operations.unshift(...ops)
+  }
+
+  /**
+   * Inserts a new `Delta` instance.
+   * @param {string} content
+   * @param {Optional<Attributes>} attributes
+   */
+  insert(content: string, attributes?: Attributes) {
+    this.insertAt(this.cursor, content, attributes)
+  }
+
+  /**
+   * Inserts a new `Delta` instance `at` the given position.
+   * @param {number} at
+   * @param {string} content
+   * @param {Optional<Attributes>} attributes
+   */
+  insertAt(at: number, content: string, attributes?: Attributes) {
+    if (!this.#deleteIfNeeded()) {
+      this.#retainIfNeeded(at)
+    }
+
+    const op = createDelta(content, clone(attributes))
+    this.#cursor += op.length
+    this.push(op)
+  }
+
+  /**
+   * Inserts an `DeltaBlock` for the given `BlockType`.
+   * @param {BlockType} block @default Block.paragraph
+   * @param {Optional<Attributes>} attributes
+   */
+  block(block: BlockType = Block.paragraph, attributes?: Attributes) {
+    this.blockAt(this.cursor, block, attributes)
+  }
+
+  /**
+   * Inserts an `DeltaBlock` for the given `BlockType`,
+   * `at` the given position.
+   * @param {number} at
+   * @param {BlockType} block @default Block.paragraph
+   * @param {Optional<Attributes>} attributes
+   */
+  blockAt(at: number, block: BlockType = Block.paragraph, attributes?: Attributes) {
+    if (!this.#deleteIfNeeded()) {
+      this.#retainIfNeeded(at)
+    }
+
+    ++this.#cursor
+    this.push(createDeltaBlock(block, clone(attributes)))
+  }
+
+  /**
+   * Converts the `BlockType` at the `cursor` position.
+   * @param {BlockType} block
+   * @param {Optional<Attributes>} attributes
+   */
+  convert(block: BlockType, attributes?: Attributes) {
+    this.convertAt(this.cursor, block, attributes)
+  }
+
+  /**
+   * Converts the `BlockType` `at` the given position.
+   * @param {number} at
+   * @param {BlockType} block
+   * @param {Optional<Attributes>} attributes
+   */
+  convertAt(at: number, block: BlockType, attributes?: Attributes) {
+    if (!this.#deleteIfNeeded()) {
+      this.#retainIfNeeded(at)
+    }
+
+    ++this.#cursor
+    this.push(createSwapOperation({ block }, clone(attributes)))
+  }
+
+  /**
+   * A boolean check that determines if a `Block`
+   * will be added, up to the point of the current
+   * operations set.
+   */
+  get willInsertBlockAtFront(): boolean {
+    const d = simulate(this.operations, this.delta)[0]
+    return 'undefined' === typeof d || 'string' === typeof d.insert
+  }
+
+  /**
+   * If the location before the current `cursor` position is a `BlockType`
+   * and different from the given `block` instance, then it converts
+   * the previous `BlockType` and doesn't insert a new one.
+   * @param {BlockType} block
+   * @returns {boolean}
+   */
+  convertIfNeeded(block: BlockType): boolean {
+    if (0 < this.cursor) {
+      const at = this.cursor - 1
+      const insert = this.text.fetchAt(at)
+      if ('object' === typeof insert && block !== insert.block) {
+        this.convertAt(at, block)
+        return true
+      }
+    }
+    this.block(block)
+    return false
+  }
+
+
+  /**
+   * Replaces the `string` at the `cursor` position.
+   * @param {string} content
+   * @param {Optional<Attributes>} attributes
+   */
+  replace(content: string, attributes?: Attributes) {
+    this.replaceAt(this.cursor, content, attributes)
+  }
+
+  /**
+   * Replaces the `string` `at` the given position.
+   * @param {number} at
+   * @param {string} content
+   * @param {Optional<Attributes>} attributes
+   */
+  replaceAt(at: number, content: string, attributes?: Attributes) {
+    if (!this.#deleteIfNeeded()) {
+      this.#retainIfNeeded(at)
+    }
+
+    this.#cursor += content.length
+    this.push(createSwapOperation(content, clone(attributes)))
+  }
+
+  /**
+   * Formats the `Selection` of characters at the `cursor` position.
+   * @param {Attributes} attributes
+   */
+  format(attributes: Attributes) {
+    this.formatAt(this.cursor, distanceX(this.selection), attributes)
+  }
+
+  /**
+   * Formats the `length` of characters `at` the given position.
+   * @param {number} at
+   * @param {number} length
+   * @param {Attributes} attributes
+   */
+  formatAt(at: number, length: number, attributes: Attributes) {
+    this.#retainIfNeeded(at)
+    this.push(createRetainOperation(length, attributes))
+    Object.assign(this.attributes, attributes)
+  }
+
+  /**
+   * Deletes the `selection` of characters if a selection exists, or deletes the
+   * length of `glyphs`.
+   * @param {XSelection | number} length @default 1
+   */
+  delete(length: XSelection | number = 1) {
+    if ('number' === typeof length) {
+      let len = length
+
+      assert(-1 < length, `Cannot delete length {${len}}. The value must be greater than or equal '0'`)
+
+      if (!this.#deleteIfNeeded()) {
+        /**
+         * Initially we look if the `Selection` has collapsed.
+         * If so, then we subtract the current cursor by `1`,
+         * in order to delete a given position to the left of
+         * the cursor. We utilize the `fetchAt` method in order
+         * to accommodate an issue if the position to the left
+         * has a string length greater than `1` and the cursor
+         * will fall into that range. If the position element is
+         * a `Block`, we can `delete` by `1` position safely.
+         */
+        if (1 === len) {
+          const d = this.text.fetchAt(this.cursor - 1)
+          if ('string' === typeof d) {
+            len = d.length
+          }
+        }
+
+        if (0 < this.cursor) {
+          this.deleteAt(this.cursor - len, len)
+        }
+      }
+    }
+    else {
+      this.delete(lengthX(length))
+    }
+  }
+
+  /**
+   * Deletes the `length` of glyphs starting `at` the given position.
+   * @param {number} at
+   * @param {number} length
+   */
+  deleteAt(at: number, length: number) {
+    this.#retainIfNeeded(at)
+
+    if (length) {
+      this.push(createDeleteOperation(length))
+    }
+  }
+
+  /**
+   * Clears the entire `Delta` array.
+   */
+  clear() {
+    this.deleteAt(0, this.text.length)
+  }
+
+  retain(at: number) {
+    assert(0 <= at, `Cannot retain {${at}} number.`)
+
+    this.#cursor += at
+
+    /**
+     * Even though a valid value of `0` is retained,
+     * we don't need to create the operation, as the
+     * position will already be in the correct place.
+     */
+    if (0 < at) {
+      this.push(createRetainOperation(at))
+    }
+  }
+
+  /**
+   * Inserts a `Block.paragraph` operation if needed.
+   * @returns {boolean}
+   */
+  ensureBlockAtFront(): boolean {
+    this.#hasBlockAtFront = true
+
+    if (this.willInsertBlockAtFront) {
+      ++this.#cursor
+      this.unshift(createDeltaBlock(Block.paragraph))
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * Sets the `cursor` to the given `at` value.
+   * @param {number} at
+   */
+  #retainIfNeeded(at: number) {
+    if (at <= this.cursor) {
+      this.#cursor = 0
+    }
+
+    this.retain(at - this.cursor)
+  }
+
+  /**
+   * Deletes the selection if it's not collapsed.
+   * The `boolean` result indicates whether there
+   * has been a selection that was deleted.
+   * @returns {boolean}
+   */
+  #deleteIfNeeded(): boolean {
+    if (isCollapsedX(this.selection)) {
+      return false
+    }
+
+    this.deleteAt(this.cursor, distanceX(this.selection))
+
+    return true
+  }
 }
+
+/**
+ * Creates a new `Transaction` instance.
+ * @param {Text} t
+ * @param {Operation[]} [ops=[]]
+ * @returns {Transaction}
+ */
+export const createTransaction = (t: Text, ops: Operation[] = []): Transaction => new Transaction(t, ops)
 
 /**
  * Maps the given cursor in the `Text.delta` to a new `cursor`
@@ -835,7 +916,7 @@ export function minimizeDelta(delta: Delta[]): Delta[] {
  * @param {number} position
  * @returns {number}
  */
-export function selectionFromTransaction(tr: Transaction, position: number): number {
+export const selectionFromTransaction = (tr: Transaction, position: number): number => {
   let cursor = 0
   let pos = position
 
@@ -874,99 +955,4 @@ export function selectionFromTransaction(tr: Transaction, position: number): num
    * `selections` have been updated.
    */
   return 0 === pos && tr.hasBlockAtFront ? 1 : pos
-}
-
-
-/**
- * Selects the `string` or `Block` at the given position.
- * The `fetchAt` method accommodates the issue if a
- * position falls within a string range where the character
- * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
- *
- * @param {number} at
- * @param {Delta[]} delta
- * @returns {Optional<DeltaType>}
- */
-export function fetchAt(at: number, delta: Delta[]): Optional<DeltaType> {
-  let pos = 0
-
-  for (const d of delta) {
-    /**
-     * In this case we can extract the character at the given value.
-     */
-    if ('string' === typeof d.insert) {
-      let l = d.insert.length
-
-      /**
-       * Initial consider that the string length of the `Operation`
-       * may be less than the `at` value, plus the `p` position.
-       * We can skip ahead in this case.
-       */
-      if (pos + l < at) {
-        pos += l
-        continue
-      }
-
-      /**
-       * Get the `Glyphs` of the `insert` string, as we want
-       * to get the value `at` that may be a character, such as
-       * '👨‍👨‍👧‍👧' that has a length greater than 1.
-       */
-      const g = glyphs(d.insert)
-
-      for (const t of g) {
-        l = t.length
-
-        /**
-         * We compensate for the single `-1` value, since the
-         * `l` value will have a `+1` as it includes length, and
-         * we need it to be adjusted for `p` position, which is
-         * always less `1`.
-         */
-        if (pos + l - 1 === at) {
-          return t
-        }
-
-        pos += l
-      }
-    }
-
-    /**
-     * This handles the case where we hit a `BlockType`
-     * and, blocks only add a value of `+1`.
-     */
-    else {
-      if (pos === at) {
-        return d.insert
-      }
-
-      ++pos
-    }
-  }
-
-  return
-}
-
-/**
- * Retrieves the `Delta` at the given position.
- *
- * @param {number} at
- * @param {Delta[]} delta
- * @returns {Optional<Delta>}
- */
-export function deltaAt(at: number, delta: Delta[]): Optional<Delta> {
-  let pos = 0
-  let l = 0
-
-  for (const d of delta) {
-    l = d.length
-
-    if (pos + l > at) {
-      return d
-    }
-
-    pos += l
-  }
-
-  return
 }
