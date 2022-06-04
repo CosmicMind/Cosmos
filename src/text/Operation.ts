@@ -37,6 +37,13 @@
 import { Attributes } from './Attributes'
 
 /**
+ * Defines the `inline` element symbol.
+ */
+export const InlineSymbol = ' '
+
+export type DeltaInline = string
+
+/**
  * Defines the `block` element symbol.
  */
 export const BlockSymbol = '\n'
@@ -44,30 +51,35 @@ export const BlockSymbol = '\n'
 /**
  * The type of `block` that is renderable.
  */
-export type BlockType = 'paragraph' |
-    'blockquote' |
-    'unordered-list' |
-    'unordered' |
-    'ordered-list' |
-    'ordered'
+export type BlockType =
+  'paragraph' |
+  'blockquote' |
+  'unordered-list' |
+  'unordered' |
+  'ordered-list' |
+  'ordered'
 
 /**
  * The type of `block` that is rendered.
  */
-export const Block = {
+export const Block = Object.freeze({
   paragraph: 'paragraph' as BlockType,
   blockquote: 'blockquote' as BlockType,
   unorderedList: 'unordered-list' as BlockType,
   unordered: 'unordered' as BlockType,
   orderedList: 'ordered-list' as BlockType,
   ordered: 'ordered' as BlockType,
+})
+
+export interface DeltaBlock {
+  block: BlockType
 }
 
 /**
- * The type of values that an `Delta.insert`
+ * The type of values that a `Delta.insert`
  * property may store.
  */
-export type DeltaType = string | { block: BlockType }
+export type DeltaType = DeltaInline | DeltaBlock
 
 /**
  * Defines an `Delta`.
@@ -95,14 +107,14 @@ export function createDelta(insert: DeltaType, attributes: Attributes = {}): Del
 
 /**
  * Creates an `Delta` for `text` specifically.
- * @param {DeltaType} text
+ * @param {InlineType} inline
  * @param {Attributes} attributes
  * @returns {Delta}
  */
-export function createDeltaText(text: string, attributes: Attributes = {}): Delta {
+export function createDeltaText(insert: DeltaInline, attributes: Attributes = {}): Delta {
   return {
-    insert: text,
-    length: text.length,
+    insert,
+    length: insert.length,
     attributes,
   }
 }

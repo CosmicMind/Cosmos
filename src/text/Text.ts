@@ -38,8 +38,8 @@ import {
   async,
   clone,
   Voidable,
-  Optional,
   Observable,
+  Nullable,
 } from '@cosmicverse/foundation'
 
 import {
@@ -129,8 +129,9 @@ export class Text extends Observable {
   /**
    * Retrieves the `Delta` at the given position.
    * @param {number} at
+   * @returns {Nullable<Delta>}
    */
-  deltaAt(at: number): Optional<Delta> {
+  deltaAt(at: number): Nullable<Delta> {
     return deltaAt(at, this.delta)
   }
 
@@ -140,9 +141,9 @@ export class Text extends Observable {
    * position falls within a string range where the character
    * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
    * @param {number} at
-   * @returns {Optional<DeltaType>}
+   * @returns {Nullable<DeltaType>}
    */
-  fetchAt(at: number): Optional<DeltaType> {
+  fetchAt(at: number): Nullable<DeltaType> {
     return fetchAt(at, this.delta)
   }
 
@@ -151,7 +152,7 @@ export class Text extends Observable {
    * As long as a value of `true` is not returned within the given `Transaction`
    * block, the `Transaction` will commit its changes.
    *
-   * @param {(tr: Transaction): Voidable<boolean>} fn
+   * @param {(tr: Transaction) => Voidable<boolean>} fn
    * @param {Optional<(t: Text, tr: Transaction) => void>} cb When the `callback`
    * function is set, then the `beforeTransaction`, and `afterTransaction`
    * event emitters are not executed.
@@ -184,7 +185,7 @@ export class Text extends Observable {
    * As long as a value of `true` is not returned within the given `Transaction`
    * block, the `Transaction` will commit its changes.
    *
-   * @param {(tr: Transaction): Voidable<boolean>} fn
+   * @param {(tr: Transaction) => Voidable<boolean>} fn
    * @param {Optional<(t: Text, tr: Transaction) => void>} cb When the `callback`
    * function is set, then the `beforeTransaction`, and `afterTransaction`
    * event emitters are not executed.

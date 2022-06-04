@@ -40,6 +40,7 @@ import {
   equals,
   Optional,
   Nullable,
+  guardFor,
 } from '@cosmicverse/foundation'
 
 import { glyphs } from './Glyphs'
@@ -64,6 +65,8 @@ import {
   Block,
   BlockType,
   DeltaType,
+  DeltaBlock,
+  DeltaInline,
 } from './Operation'
 
 import { Text } from './Text'
@@ -110,7 +113,7 @@ export const minimizeDelta = (delta: Delta[]): Delta[] => {
  *
  * @param {number} at
  * @param {Delta[]} delta
- * @returns {Optional<DeltaType>}
+ * @returns {Nullable<DeltaType>}
  */
 export const fetchAt = (at: number, delta: Delta[]): Nullable<DeltaType> => {
   let pos = 0
@@ -177,7 +180,7 @@ export const fetchAt = (at: number, delta: Delta[]): Nullable<DeltaType> => {
  *
  * @param {number} at
  * @param {Delta[]} delta
- * @returns {Optional<Delta>}
+ * @returns {Nullable<Delta>}
  */
 export const deltaAt = (at: number, delta: Delta[]): Nullable<Delta> => {
   let pos = 0
@@ -638,7 +641,7 @@ export class Transaction {
    * @param {Optional<Attributes>} attributes
    */
   insert(content: string, attributes?: Attributes) {
-    this.insertAt(this.cursor, content, attributes)
+    this.insertAt(this.#cursor, content, attributes)
   }
 
   /**
@@ -663,7 +666,7 @@ export class Transaction {
    * @param {Optional<Attributes>} attributes
    */
   block(block: BlockType = Block.paragraph, attributes?: Attributes) {
-    this.blockAt(this.cursor, block, attributes)
+    this.blockAt(this.#cursor, block, attributes)
   }
 
   /**
@@ -688,7 +691,7 @@ export class Transaction {
    * @param {Optional<Attributes>} attributes
    */
   convert(block: BlockType, attributes?: Attributes) {
-    this.convertAt(this.cursor, block, attributes)
+    this.convertAt(this.#cursor, block, attributes)
   }
 
   /**
@@ -724,10 +727,10 @@ export class Transaction {
    * @returns {boolean}
    */
   convertIfNeeded(block: BlockType): boolean {
-    if (0 < this.cursor) {
-      const at = this.cursor - 1
+    if (0 < this.#cursor) {
+      const at = this.#cursor - 1
       const insert = this.text.fetchAt(at)
-      if ('object' === typeof insert && block !== insert.block) {
+      if (guardFor<DeltaBlock>(insert, 'block') && block !== insert.block) {
         this.convertAt(at, block)
         return true
       }
@@ -743,7 +746,7 @@ export class Transaction {
    * @param {Optional<Attributes>} attributes
    */
   replace(content: string, attributes?: Attributes) {
-    this.replaceAt(this.cursor, content, attributes)
+    this.replaceAt(this.#cursor, content, attributes)
   }
 
   /**
@@ -766,7 +769,7 @@ export class Transaction {
    * @param {Attributes} attributes
    */
   format(attributes: Attributes) {
-    this.formatAt(this.cursor, distanceX(this.selection), attributes)
+    this.formatAt(this.#cursor, distanceX(this.selection), attributes)
   }
 
   /**
@@ -804,14 +807,14 @@ export class Transaction {
          * a `Block`, we can `delete` by `1` position safely.
          */
         if (1 === len) {
-          const d = this.text.fetchAt(this.cursor - 1)
+          const d = this.text.fetchAt(this.#cursor - 1)
           if ('string' === typeof d) {
             len = d.length
           }
         }
 
-        if (0 < this.cursor) {
-          this.deleteAt(this.cursor - len, len)
+        if (0 < this.#cursor) {
+          this.deleteAt(this.#cursor - len, len)
         }
       }
     }
@@ -876,11 +879,11 @@ export class Transaction {
    * @param {number} at
    */
   #retainIfNeeded(at: number) {
-    if (at <= this.cursor) {
+    if (at <= this.#cursor) {
       this.#cursor = 0
     }
 
-    this.retain(at - this.cursor)
+    this.retain(at - this.#cursor)
   }
 
   /**
@@ -894,7 +897,7 @@ export class Transaction {
       return false
     }
 
-    this.deleteAt(this.cursor, distanceX(this.selection))
+    this.deleteAt(this.#cursor, distanceX(this.selection))
 
     return true
   }

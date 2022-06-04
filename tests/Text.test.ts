@@ -32,8 +32,11 @@
 
 import test from 'ava'
 
+import { Optional } from '@cosmicverse/foundation'
+
 import {
   Text,
+  Transaction,
   collapseX,
   Block,
   createDeltaText,
@@ -1110,4 +1113,32 @@ test('Text: R', t => {
     createDeltaText('l', { bold: true }),
     createDeltaText('d', { bold: true })
   ])
+})
+
+test('Text: S', async t => {
+  const text = new Text()
+  let cbHasBeenCalled = false
+  let cbText: Optional<Text>
+  let cbTR: Optional<Transaction>
+
+  await text.transactAsync(tr => {
+    tr.insert('Hello World')
+    t.is(tr.cursor, 11)
+    t.deepEqual(tr.operations, [
+      createDeltaText('Hello World')
+    ])
+  }, (t: Text, tr: Transaction) => {
+    cbText = t
+    cbTR = tr
+    cbHasBeenCalled = true
+  })
+
+  t.is(cbText, text)
+  t.is(cbTR?.delta, cbText?.delta)
+
+  t.deepEqual(text.delta, [
+    createDeltaText('Hello World')
+  ])
+
+  t.true(cbHasBeenCalled)
 })
