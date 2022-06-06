@@ -1133,12 +1133,12 @@ test('Text: S', async t => {
     cbHasBeenCalled = true
   })
 
+  t.true(cbHasBeenCalled)
+
   t.is(cbText, text)
   t.is(cbTR?.delta, cbText?.delta)
 
   t.deepEqual(text.delta, [
     createDeltaText('Hello World')
   ])
-
-  t.true(cbHasBeenCalled)
 })

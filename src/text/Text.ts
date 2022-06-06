@@ -68,19 +68,6 @@ import {
 } from './Operation'
 
 /**
- * Updates the `cursor` for the given `Transaction.
- * It relatively updates the `x` values for the
- * `XSelection` points by using the `Transaction`
- * operations.
- * @param {Transaction} tr
- * @param {XSelection} selection
- */
-export const updateSelection = (tr: Transaction, selection: XSelection) => {
-  selection.start.x = selectionFromTransaction(tr, selection.start.x)
-  selection.end.x = selectionFromTransaction(tr, selection.end.x)
-}
-
-/**
  * @extends {Observable}
  */
 export class Text extends Observable {
@@ -252,3 +239,15 @@ export class Text extends Observable {
   }
 }
 
+/**
+ * Updates the `cursor` for the given `Transaction.
+ * It relatively updates the `x` values for the
+ * `XSelection` points by using the `Transaction`
+ * operations.
+ * @param {Transaction} tr
+ * @param {XSelection} selection
+ */
+export function updateSelection(tr: Transaction, selection: XSelection) {
+  selection.start.x = selectionFromTransaction(tr, selection.start.x)
+  selection.end.x = selectionFromTransaction(tr, selection.end.x)
+}

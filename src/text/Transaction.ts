@@ -66,468 +66,10 @@ import {
   BlockType,
   DeltaType,
   DeltaBlock,
-  DeltaInline,
 } from './Operation'
 
 import { Text } from './Text'
 import { Attributes } from './Attributes'
-
-/**
- * Minimizes the number of delta values, based on similar delta instances
- * being adjacent to each other.
- *
- * @param {Delta[]} delta
- * @returns {Delta[]}
- */
-export const minimizeDelta = (delta: Delta[]): Delta[] => {
-  let i = 1
-  let l = delta.length
-  let p: Optional<Delta> = delta[0] /// previous `Delta`
-  let n: Optional<Delta> /// next `Delta`
-
-  while (i < l) {
-    n = delta[i]
-
-    if ('string' === typeof p.insert &&
-        'string' === typeof n.insert &&
-        equals(p.attributes, n.attributes)) {
-      p = createDeltaText(p.insert + n.insert, p.attributes)
-      delta.splice(i - 1, 1, p)
-      delta.splice(i, 1)
-      --l
-      continue
-    }
-
-    p = n
-    ++i
-  }
-
-  return delta
-}
-
-/**
- * Selects the `string` or `Block` at the given position.
- * The `fetchAt` method accommodates the issue if a
- * position falls within a string range where the character
- * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
- *
- * @param {number} at
- * @param {Delta[]} delta
- * @returns {Nullable<DeltaType>}
- */
-export const fetchAt = (at: number, delta: Delta[]): Nullable<DeltaType> => {
-  let pos = 0
-
-  for (const d of delta) {
-    /**
-     * In this case we can extract the character at the given value.
-     */
-    if ('string' === typeof d.insert) {
-      let l = d.insert.length
-
-      /**
-       * Initial consider that the string length of the `Operation`
-       * may be less than the `at` value, plus the `p` position.
-       * We can skip ahead in this case.
-       */
-      if (pos + l < at) {
-        pos += l
-        continue
-      }
-
-      /**
-       * Get the `Glyphs` of the `insert` string, as we want
-       * to get the value `at` that may be a character, such as
-       * '👨‍👨‍👧‍👧' that has a length greater than 1.
-       */
-      const g = glyphs(d.insert)
-
-      for (const t of g) {
-        l = t.length
-
-        /**
-         * We compensate for the single `-1` value, since the
-         * `l` value will have a `+1` as it includes length, and
-         * we need it to be adjusted for `p` position, which is
-         * always less `1`.
-         */
-        if (pos + l - 1 === at) {
-          return t
-        }
-
-        pos += l
-      }
-    }
-
-    /**
-     * This handles the case where we hit a `BlockType`
-     * and, blocks only add a value of `+1`.
-     */
-    else {
-      if (pos === at) {
-        return d.insert
-      }
-
-      ++pos
-    }
-  }
-
-  return null
-}
-
-/**
- * Retrieves the `Delta` at the given position.
- *
- * @param {number} at
- * @param {Delta[]} delta
- * @returns {Nullable<Delta>}
- */
-export const deltaAt = (at: number, delta: Delta[]): Nullable<Delta> => {
-  let pos = 0
-  let l = 0
-
-  for (const d of delta) {
-    l = d.length
-
-    if (pos + l > at) {
-      return d
-    }
-
-    pos += l
-  }
-
-  return null
-}
-
-/**
- * Processes the given `Operation` list and `Delta` list,
- * and derives a new `Delta` list result.
- *
- * @param {Operation[]} ops
- * @param {Delta[]} delta
- * @param {Optional<Transaction>} tr
- * @returns {Delta[]}
- */
-export const processOperations = (ops: Operation[], delta: Delta[]): Delta[] => {
-  let cursor = 0
-  let i = 0 /// `Delta` iterator position.
-  let d: Optional<Delta> /// `Delta`.
-  let dPos = 0 /// `Delta.insert` position.
-  let dLength = 0
-  let q = 0 /// `Operation` iterator position.
-  let opLength = 0
-  let op: Optional<Operation> = ops[q]
-
-  /// The initial position of the cursor when formatting.
-  let anchor = 0
-
-  while ('undefined' !== typeof op) {
-    /**
-     * If the operation is a `retain`, then we only
-     * need to advance the `cursor` to the `op.retain`
-     * value, and advance the operation iterator.
-     */
-    if ('retain' in op) {
-      /**
-       * Formatting is changing here. Capture the new
-       * formatting options that have been set in the
-       * `op.attributes` property.
-       */
-      if ('undefined' !== typeof op.attributes) {
-        if (0 === anchor) {
-          anchor = cursor
-          cursor += op.retain
-        }
-
-        d = delta[i]
-
-        if ('undefined' === typeof d) {
-          ++q
-          anchor = 0
-          op = ops[q]
-          continue
-        }
-
-        dLength = d.length
-
-        if (anchor >= dPos + dLength) {
-          dPos += dLength
-          ++i
-        }
-        else if (anchor > dPos) {
-          if ('string' === typeof d.insert) {
-            const split = anchor - dPos
-            delta.splice(i, 1, createDelta(d.insert.slice(0, split), d.attributes))
-            delta.splice(i + 1, 0, createDelta(d.insert.slice(split), d.attributes))
-          }
-
-          ++i
-          dPos = anchor
-        }
-        else if (cursor >= dPos + dLength) {
-          delta.splice(i, 1, createDelta(d.insert, Object.assign(clone(d.attributes), op.attributes)))
-          dPos += dLength
-          ++i
-        }
-        else if (cursor > dPos) {
-          if ('string' === typeof d.insert) {
-            const split = cursor - dPos
-            delta.splice(i, 1, createDelta(d.insert.slice(0, split), Object.assign(clone(d.attributes), op.attributes)))
-            delta.splice(i + 1, 0, createDelta(d.insert.slice(split), d.attributes))
-
-            dPos = cursor
-          }
-
-          ++q
-          ++i
-          anchor = 0
-        }
-        else {
-          ++q
-          ++i
-          anchor = 0
-        }
-      }
-      else {
-        cursor += op.retain
-
-        ++q
-        anchor = 0
-      }
-    }
-
-    /**
-     * If the operation is a `swap`, then we want
-     * to insert the array at the current `i` position.
-     */
-    else if ('swap' in op) {
-      op = createDelta(op.swap, op.attributes)
-
-      opLength = op.length
-
-      /**
-       * At this point, if the `Delta` is `undefined`,
-       * we must be working with an empty `Delta` list.
-       * This initiates the list, and begins the
-       * `Transaction` processing.
-       */
-      d = delta[i]
-      if ('undefined' === typeof d) {
-        delta.push(op)
-        ++q
-        ++i
-        dPos = opLength
-        cursor = dPos
-        op = ops[q]
-        continue
-      }
-
-      dLength = d.length
-
-      /**
-       * In this case, the position within the `Delta` list
-       * and the addition of the `Delta` length are less or
-       * equal to the cursor, so we can move along in the
-       * `Delta` list, and be sure that we are not losing
-       * any information.
-       */
-      if (cursor >= dPos + dLength) {
-        dPos += dLength
-        ++i
-      }
-
-      /**
-       * When the `cursor` is equal to `dPos`, we are inserting
-       * to the left of the latest operation.
-       */
-      else if (cursor === dPos) {
-        delta.splice(i, 1, op)
-
-        if ('string' === typeof d.insert) {
-          delta.splice(i + 1, 0, createDelta(d.insert.slice(1), d.attributes))
-        }
-        else {
-          dPos += opLength
-        }
-
-        ++q
-        ++i
-      }
-      else if (cursor > dPos) {
-        if ('string' === typeof d.insert) {
-          const split = cursor - dPos
-          delta.splice(i, 1, op)
-          delta.splice(i + 1, 0, createDelta(d.insert.slice(split + 1), d.attributes))
-
-          ++q
-          ++i
-          dPos = cursor
-        }
-      }
-    }
-
-    /**
-     * If the operation is a `delete`, then we want
-     * to remove everything to the right of the cursor
-     * by the `op.delete` value.
-     */
-    else if ('delete' in op) {
-      d = delta[i]
-
-      if ('undefined' === typeof d) {
-        break
-      }
-
-      dLength = d.length
-
-      /**
-       * In this case, the position within the `Delta` list
-       * and the addition of the `Delta` length are less or
-       * equal to the cursor, so we can move along in the
-       * `Delta` list, and be sure that we are not losing
-       * any information.
-       */
-      if (cursor >= dPos + dLength) {
-        dPos += dLength
-        ++i
-      }
-      else {
-        if ('string' === typeof d.insert) {
-          if (cursor === dPos) {
-            if (dLength > op.delete) {
-              delta.splice(i, 1, createDelta(d.insert.slice(op.delete), d.attributes))
-              ++q
-            }
-            else if (dLength === op.delete) {
-              delta.splice(i, 1)
-              ++q
-            }
-            else if (dLength < op.delete) {
-              delta.splice(i, 1)
-              ops.splice(q, 1, createDeleteOperation(op.delete - dLength))
-            }
-          }
-          else if (cursor > dPos) {
-            const split = cursor - dPos
-
-            delta.splice(i, 1, createDelta(d.insert.slice(0, split), d.attributes))
-            delta.splice(i + 1, 0, createDelta(d.insert.slice(split), d.attributes))
-
-            dPos = cursor
-            ++i
-          }
-        }
-        else {
-          delta.splice(i, 1)
-          dPos = cursor
-
-          if (1 < op.delete) {
-            op = ops[q] = createDeleteOperation(op.delete - 1)
-          }
-          else {
-            ++q
-          }
-        }
-      }
-    }
-
-    /**
-     * An `insert` operation has two types to deal with,
-     * a `string` or `block` insert type. The default length
-     * of a `block` is `1`, whereas a `string` type
-     * has a length equal to the number of characters it holds.
-     */
-    else if ('insert' in op) {
-      opLength = op.length
-
-      /**
-       * At this point, if the `Delta` is `undefined`,
-       * we must be working with an empty `Delta` list.
-       * This initiates the list, and begins the
-       * `Transaction` processing.
-       */
-      d = delta[i]
-      if ('undefined' === typeof d) {
-        delta.push(op)
-        ++q
-        ++i
-        dPos = opLength
-        cursor = dPos
-        op = ops[q]
-        continue
-      }
-
-      dLength = d.length
-
-      /**
-       * In this case, the position within the `Delta` list
-       * and the addition of the `Delta` length are less or
-       * equal to the cursor, so we can move along in the
-       * `Delta` list, and be sure that we are not losing
-       * any information.
-       */
-      if (cursor >= dPos + dLength) {
-        dPos += dLength
-        ++i
-      }
-
-      /**
-       * When the `cursor` is equal to `dPos`, we are inserting
-       * to the left of the latest operation.
-       */
-      else if (cursor === dPos) {
-        delta.splice(i, 1, op)
-        delta.splice(i + 1, 0, d)
-        ++q
-        ++i
-        dPos += opLength
-        cursor = dPos
-      }
-      else if (cursor > dPos) {
-        if ('string' === typeof d.insert) {
-          const split = cursor - dPos
-
-          delta.splice(i, 1, createDelta(d.insert.slice(0, split), d.attributes))
-          delta.splice(i + 1, 0, op)
-          delta.splice(i + 2, 0, createDelta(d.insert.slice(split), d.attributes))
-
-          ++q
-          ++i
-          dPos = cursor
-        }
-      }
-    }
-
-    op = ops[q]
-  }
-
-  return delta
-}
-
-/**
- * Processes the given `Operation` list and `Delta` list,
- * and derives a new `Delta` list result.
- * @param {Operation[]} ops
- * @param {Delta[]} delta
- * @returns {Delta[]}
- */
-export const commit = (ops: Operation[], delta: Delta[]): Delta[] =>
-  /**
-   * The `Transaction.operations` are copied, as the `Delta`
-   * instances are iterated through, creating possible
-   * operation value compensations, for example in
-   * `DeleteOperation` instances.
-   */
-  processOperations([ ...ops ], delta)
-
-/**
- * Simulates the list of `Operation` values on a `Delta` list.
- *
- * @param {Operation[]} ops
- * @param {Delta[]} delta
- * @returns {Delta[]}
- */
-export const simulate = (ops: Operation[], delta: Delta[]): Delta[] => processOperations([ ...ops ], [ ...delta ])
 
 /**
  * A `Transaction` represents a proposed set of operations that
@@ -909,7 +451,470 @@ export class Transaction {
  * @param {Operation[]} [ops=[]]
  * @returns {Transaction}
  */
-export const createTransaction = (t: Text, ops: Operation[] = []): Transaction => new Transaction(t, ops)
+export function createTransaction(t: Text, ops: Operation[] = []): Transaction {
+  return new Transaction(t, ops)
+}
+
+/**
+ * Minimizes the number of delta values, based on similar delta instances
+ * being adjacent to each other.
+ *
+ * @param {Delta[]} delta
+ * @returns {Delta[]}
+ */
+export function minimizeDelta(delta: Delta[]): Delta[] {
+  let i = 1
+  let l = delta.length
+  let prev: Optional<Delta> = delta[0]
+  let next: Optional<Delta>
+
+  while (i < l) {
+    next = delta[i]
+
+    if ('string' === typeof prev.insert &&
+        'string' === typeof next.insert &&
+        equals(prev.attributes, next.attributes)) {
+      prev = createDeltaText(prev.insert + next.insert, prev.attributes)
+      delta.splice(i - 1, 1, prev)
+      delta.splice(i, 1)
+      --l
+      continue
+    }
+
+    prev = next
+    ++i
+  }
+
+  return delta
+}
+
+/**
+ * Selects the `string` or `Block` at the given position.
+ * The `fetchAt` method accommodates the issue if a
+ * position falls within a string range where the character
+ * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
+ *
+ * @param {number} at
+ * @param {Delta[]} delta
+ * @returns {Nullable<DeltaType>}
+ */
+export function fetchAt(at: number, delta: Delta[]): Nullable<DeltaType> {
+  let pos = 0
+
+  for (const d of delta) {
+    /**
+     * In this case we can extract the character at the given value.
+     */
+    if ('string' === typeof d.insert) {
+      let l = d.insert.length
+
+      /**
+       * Initial consider that the string length of the `Operation`
+       * may be less than the `at` value, plus the `p` position.
+       * We can skip ahead in this case.
+       */
+      if (pos + l < at) {
+        pos += l
+        continue
+      }
+
+      /**
+       * Get the `Glyphs` of the `insert` string, as we want
+       * to get the value `at` that may be a character, such as
+       * '👨‍👨‍👧‍👧' that has a length greater than 1.
+       */
+      const g = glyphs(d.insert)
+
+      for (const t of g) {
+        l = t.length
+
+        /**
+         * We compensate for the single `-1` value, since the
+         * `l` value will have a `+1` as it includes length, and
+         * we need it to be adjusted for `p` position, which is
+         * always less `1`.
+         */
+        if (pos + l - 1 === at) {
+          return t
+        }
+
+        pos += l
+      }
+    }
+
+    /**
+     * This handles the case where we hit a `BlockType`
+     * and, blocks only add a value of `+1`.
+     */
+    else {
+      if (pos === at) {
+        return d.insert
+      }
+
+      ++pos
+    }
+  }
+
+  return null
+}
+
+/**
+ * Retrieves the `Delta` at the given position.
+ *
+ * @param {number} at
+ * @param {Delta[]} delta
+ * @returns {Nullable<Delta>}
+ */
+export function deltaAt(at: number, delta: Delta[]): Nullable<Delta> {
+  let pos = 0
+  let l = 0
+
+  for (const d of delta) {
+    l = d.length
+
+    if (pos + l > at) {
+      return d
+    }
+
+    pos += l
+  }
+
+  return null
+}
+
+/**
+ * Processes the given `Operation` list and `Delta` list,
+ * and derives a new `Delta` list result.
+ *
+ * @param {Operation[]} ops
+ * @param {Delta[]} delta
+ * @param {Optional<Transaction>} tr
+ * @returns {Delta[]}
+ */
+export function processOperations(ops: Operation[], delta: Delta[]): Delta[] {
+  let cursor = 0
+  let i = 0 /// `Delta` iterator position.
+  let d: Optional<Delta> /// `Delta`.
+  let dPos = 0 /// `Delta.insert` position.
+  let dLength = 0
+  let q = 0 /// `Operation` iterator position.
+  let opLength = 0
+  let op: Optional<Operation> = ops[q]
+
+  /// The initial position of the cursor when formatting.
+  let anchor = 0
+
+  while ('undefined' !== typeof op) {
+    /**
+     * If the operation is a `retain`, then we only
+     * need to advance the `cursor` to the `op.retain`
+     * value, and advance the operation iterator.
+     */
+    if ('retain' in op) {
+      /**
+       * Formatting is changing here. Capture the new
+       * formatting options that have been set in the
+       * `op.attributes` property.
+       */
+      if ('undefined' !== typeof op.attributes) {
+        if (0 === anchor) {
+          anchor = cursor
+          cursor += op.retain
+        }
+
+        d = delta[i]
+
+        if ('undefined' === typeof d) {
+          ++q
+          anchor = 0
+          op = ops[q]
+          continue
+        }
+
+        dLength = d.length
+
+        if (anchor >= dPos + dLength) {
+          dPos += dLength
+          ++i
+        }
+        else if (anchor > dPos) {
+          if ('string' === typeof d.insert) {
+            const split = anchor - dPos
+            delta.splice(i, 1, createDelta(d.insert.slice(0, split), d.attributes))
+            delta.splice(i + 1, 0, createDelta(d.insert.slice(split), d.attributes))
+          }
+
+          ++i
+          dPos = anchor
+        }
+        else if (cursor >= dPos + dLength) {
+          delta.splice(i, 1, createDelta(d.insert, Object.assign(clone(d.attributes), op.attributes)))
+          dPos += dLength
+          ++i
+        }
+        else if (cursor > dPos) {
+          if ('string' === typeof d.insert) {
+            const split = cursor - dPos
+            delta.splice(i, 1, createDelta(d.insert.slice(0, split), Object.assign(clone(d.attributes), op.attributes)))
+            delta.splice(i + 1, 0, createDelta(d.insert.slice(split), d.attributes))
+
+            dPos = cursor
+          }
+
+          ++q
+          ++i
+          anchor = 0
+        }
+        else {
+          ++q
+          ++i
+          anchor = 0
+        }
+      }
+      else {
+        cursor += op.retain
+        ++q
+        anchor = 0
+      }
+    }
+
+    /**
+     * If the operation is a `swap`, then we want
+     * to insert the array at the current `i` position.
+     */
+    else if ('swap' in op) {
+      op = createDelta(op.swap, op.attributes)
+      opLength = op.length
+
+      /**
+       * At this point, if the `Delta` is `undefined`,
+       * we must be working with an empty `Delta` list.
+       * This initiates the list, and begins the
+       * `Transaction` processing.
+       */
+      d = delta[i]
+      if ('undefined' === typeof d) {
+        delta.push(op)
+        ++q
+        ++i
+        dPos = opLength
+        cursor = dPos
+        op = ops[q]
+        continue
+      }
+
+      dLength = d.length
+
+      /**
+       * In this case, the position within the `Delta` list
+       * and the addition of the `Delta` length are less or
+       * equal to the cursor, so we can move along in the
+       * `Delta` list, and be sure that we are not losing
+       * any information.
+       */
+      if (cursor >= dPos + dLength) {
+        dPos += dLength
+        ++i
+      }
+
+      /**
+       * When the `cursor` is equal to `dPos`, we are inserting
+       * to the left of the latest operation.
+       */
+      else if (cursor === dPos) {
+        delta.splice(i, 1, op)
+
+        if ('string' === typeof d.insert) {
+          delta.splice(i + 1, 0, createDelta(d.insert.slice(1), d.attributes))
+        }
+        else {
+          dPos += opLength
+        }
+
+        ++q
+        ++i
+      }
+      else if (cursor > dPos) {
+        if ('string' === typeof d.insert) {
+          const split = cursor - dPos
+          delta.splice(i, 1, op)
+          delta.splice(i + 1, 0, createDelta(d.insert.slice(split + 1), d.attributes))
+
+          ++q
+          ++i
+          dPos = cursor
+        }
+      }
+    }
+
+    /**
+     * If the operation is a `delete`, then we want
+     * to remove everything to the right of the cursor
+     * by the `op.delete` value.
+     */
+    else if ('delete' in op) {
+      d = delta[i]
+
+      if ('undefined' === typeof d) {
+        break
+      }
+
+      dLength = d.length
+
+      /**
+       * In this case, the position within the `Delta` list
+       * and the addition of the `Delta` length are less or
+       * equal to the cursor, so we can move along in the
+       * `Delta` list, and be sure that we are not losing
+       * any information.
+       */
+      if (cursor >= dPos + dLength) {
+        dPos += dLength
+        ++i
+      }
+      else {
+        if ('string' === typeof d.insert) {
+          if (cursor === dPos) {
+            if (dLength > op.delete) {
+              delta.splice(i, 1, createDelta(d.insert.slice(op.delete), d.attributes))
+              ++q
+            }
+            else if (dLength === op.delete) {
+              delta.splice(i, 1)
+              ++q
+            }
+            else if (dLength < op.delete) {
+              delta.splice(i, 1)
+              ops.splice(q, 1, createDeleteOperation(op.delete - dLength))
+            }
+          }
+          else if (cursor > dPos) {
+            const split = cursor - dPos
+
+            delta.splice(i, 1, createDelta(d.insert.slice(0, split), d.attributes))
+            delta.splice(i + 1, 0, createDelta(d.insert.slice(split), d.attributes))
+
+            dPos = cursor
+            ++i
+          }
+        }
+        else {
+          delta.splice(i, 1)
+          dPos = cursor
+
+          if (1 < op.delete) {
+            op = ops[q] = createDeleteOperation(op.delete - 1)
+          }
+          else {
+            ++q
+          }
+        }
+      }
+    }
+
+    /**
+     * An `insert` operation has two types to deal with,
+     * a `string` or `block` insert type. The default length
+     * of a `block` is `1`, whereas a `string` type
+     * has a length equal to the number of characters it holds.
+     */
+    else if ('insert' in op) {
+      opLength = op.length
+
+      /**
+       * At this point, if the `Delta` is `undefined`,
+       * we must be working with an empty `Delta` list.
+       * This initiates the list, and begins the
+       * `Transaction` processing.
+       */
+      d = delta[i]
+      if ('undefined' === typeof d) {
+        delta.push(op)
+
+        ++q
+        ++i
+        dPos = opLength
+        cursor = dPos
+        op = ops[q]
+
+        continue
+      }
+
+      dLength = d.length
+
+      /**
+       * In this case, the position within the `Delta` list
+       * and the addition of the `Delta` length are less or
+       * equal to the cursor, so we can move along in the
+       * `Delta` list, and be sure that we are not losing
+       * any information.
+       */
+      if (cursor >= dPos + dLength) {
+        dPos += dLength
+        ++i
+      }
+
+      /**
+       * When the `cursor` is equal to `dPos`, we are inserting
+       * to the left of the latest operation.
+       */
+      else if (cursor === dPos) {
+        delta.splice(i, 1, op)
+        delta.splice(i + 1, 0, d)
+
+        ++q
+        ++i
+        dPos += opLength
+        cursor = dPos
+      }
+      else if (cursor > dPos) {
+        if ('string' === typeof d.insert) {
+          const split = cursor - dPos
+
+          delta.splice(i, 1, createDelta(d.insert.slice(0, split), d.attributes))
+          delta.splice(i + 1, 0, op)
+          delta.splice(i + 2, 0, createDelta(d.insert.slice(split), d.attributes))
+
+          ++q
+          ++i
+          dPos = cursor
+        }
+      }
+    }
+
+    op = ops[q]
+  }
+
+  return delta
+}
+
+/**
+ * Processes the given `Operation` list and `Delta` list,
+ * and derives a new `Delta` list result.
+ * @param {Operation[]} ops
+ * @param {Delta[]} delta
+ * @returns {Delta[]}
+ */
+export function commit(ops: Operation[], delta: Delta[]): Delta[] {
+  /**
+   * The `Transaction.operations` are copied, as the `Delta`
+   * instances are iterated through, creating possible
+   * operation value compensations, for example in
+   * `DeleteOperation` instances.
+   */
+  return processOperations([ ...ops ], delta)
+}
+
+/**
+ * Simulates the list of `Operation` values on a `Delta` list.
+ *
+ * @param {Operation[]} ops
+ * @param {Delta[]} delta
+ * @returns {Delta[]}
+ */
+export function simulate(ops: Operation[], delta: Delta[]): Delta[] {
+  return processOperations([ ...ops ], [ ...delta ])
+}
 
 /**
  * Maps the given cursor in the `Text.delta` to a new `cursor`
@@ -919,7 +924,7 @@ export const createTransaction = (t: Text, ops: Operation[] = []): Transaction =
  * @param {number} position
  * @returns {number}
  */
-export const selectionFromTransaction = (tr: Transaction, position: number): number => {
+export function selectionFromTransaction(tr: Transaction, position: number): number {
   let cursor = 0
   let pos = position
 
