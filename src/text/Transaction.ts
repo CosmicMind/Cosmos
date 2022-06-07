@@ -164,7 +164,7 @@ export class Transaction {
    * of the `Operation` list.
    * @param {...Operation} ops
    */
-  push(...ops: Operation[]) {
+  push(...ops: Operation[]): void {
     this.operations.push(...ops)
   }
 
@@ -173,7 +173,7 @@ export class Transaction {
    * of the `Operation` list.
    * @param {...Operation} ops
    */
-  unshift(...ops: Operation[]) {
+  unshift(...ops: Operation[]): void {
     this.operations.unshift(...ops)
   }
 
@@ -182,7 +182,7 @@ export class Transaction {
    * @param {string} content
    * @param {Optional<Attributes>} attributes
    */
-  insert(content: string, attributes?: Attributes) {
+  insert(content: string, attributes?: Attributes): void {
     this.insertAt(this.#cursor, content, attributes)
   }
 
@@ -192,7 +192,7 @@ export class Transaction {
    * @param {string} content
    * @param {Optional<Attributes>} attributes
    */
-  insertAt(at: number, content: string, attributes?: Attributes) {
+  insertAt(at: number, content: string, attributes?: Attributes): void {
     if (!this.#deleteIfNeeded()) {
       this.#retainIfNeeded(at)
     }
@@ -207,7 +207,7 @@ export class Transaction {
    * @param {BlockType} block @default Block.paragraph
    * @param {Optional<Attributes>} attributes
    */
-  block(block: BlockType = Block.paragraph, attributes?: Attributes) {
+  block(block: BlockType = Block.paragraph, attributes?: Attributes): void {
     this.blockAt(this.#cursor, block, attributes)
   }
 
@@ -218,7 +218,7 @@ export class Transaction {
    * @param {BlockType} block @default Block.paragraph
    * @param {Optional<Attributes>} attributes
    */
-  blockAt(at: number, block: BlockType = Block.paragraph, attributes?: Attributes) {
+  blockAt(at: number, block: BlockType = Block.paragraph, attributes?: Attributes): void {
     if (!this.#deleteIfNeeded()) {
       this.#retainIfNeeded(at)
     }
@@ -232,7 +232,7 @@ export class Transaction {
    * @param {BlockType} block
    * @param {Optional<Attributes>} attributes
    */
-  convert(block: BlockType, attributes?: Attributes) {
+  convert(block: BlockType, attributes?: Attributes): void {
     this.convertAt(this.#cursor, block, attributes)
   }
 
@@ -242,7 +242,7 @@ export class Transaction {
    * @param {BlockType} block
    * @param {Optional<Attributes>} attributes
    */
-  convertAt(at: number, block: BlockType, attributes?: Attributes) {
+  convertAt(at: number, block: BlockType, attributes?: Attributes): void {
     if (!this.#deleteIfNeeded()) {
       this.#retainIfNeeded(at)
     }
@@ -287,7 +287,7 @@ export class Transaction {
    * @param {string} content
    * @param {Optional<Attributes>} attributes
    */
-  replace(content: string, attributes?: Attributes) {
+  replace(content: string, attributes?: Attributes): void {
     this.replaceAt(this.#cursor, content, attributes)
   }
 
@@ -297,7 +297,7 @@ export class Transaction {
    * @param {string} content
    * @param {Optional<Attributes>} attributes
    */
-  replaceAt(at: number, content: string, attributes?: Attributes) {
+  replaceAt(at: number, content: string, attributes?: Attributes): void {
     if (!this.#deleteIfNeeded()) {
       this.#retainIfNeeded(at)
     }
@@ -310,7 +310,7 @@ export class Transaction {
    * Formats the `Selection` of characters at the `cursor` position.
    * @param {Attributes} attributes
    */
-  format(attributes: Attributes) {
+  format(attributes: Attributes): void {
     this.formatAt(this.#cursor, distanceX(this.selection), attributes)
   }
 
@@ -320,7 +320,7 @@ export class Transaction {
    * @param {number} length
    * @param {Attributes} attributes
    */
-  formatAt(at: number, length: number, attributes: Attributes) {
+  formatAt(at: number, length: number, attributes: Attributes): void {
     this.#retainIfNeeded(at)
     this.push(createRetainOperation(length, attributes))
     Object.assign(this.attributes, attributes)
@@ -331,7 +331,7 @@ export class Transaction {
    * length of `glyphs`.
    * @param {XSelection | number} length @default 1
    */
-  delete(length: XSelection | number = 1) {
+  delete(length: XSelection | number = 1): void {
     if ('number' === typeof length) {
       let len = length
 
@@ -370,7 +370,7 @@ export class Transaction {
    * @param {number} at
    * @param {number} length
    */
-  deleteAt(at: number, length: number) {
+  deleteAt(at: number, length: number): void {
     this.#retainIfNeeded(at)
 
     if (length) {
@@ -381,11 +381,11 @@ export class Transaction {
   /**
    * Clears the entire `Delta` array.
    */
-  clear() {
+  clear(): void {
     this.deleteAt(0, this.text.length)
   }
 
-  retain(at: number) {
+  retain(at: number): void {
     assert(0 <= at, `Cannot retain {${at}} number.`)
 
     this.#cursor += at
@@ -420,7 +420,7 @@ export class Transaction {
    * Sets the `cursor` to the given `at` value.
    * @param {number} at
    */
-  #retainIfNeeded(at: number) {
+  #retainIfNeeded(at: number): void {
     if (at <= this.#cursor) {
       this.#cursor = 0
     }

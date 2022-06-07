@@ -208,7 +208,7 @@ export class Text extends Observable {
    * Simulates a `Transaction` on the given `Text`, but doesn't
    * actually execute it on the `Text` itself. A copy is made
    * and returned to the caller.
-   * @param {(tr: Transaction): Voidable<boolean>} fn
+   * @param {(tr: Transaction) => Voidable<boolean>} fn
    * @returns {Text}
    */
   transactSimulate(fn: (tr: Transaction) => Voidable<boolean>): Text {
@@ -247,7 +247,7 @@ export class Text extends Observable {
  * @param {Transaction} tr
  * @param {XSelection} selection
  */
-export function updateSelection(tr: Transaction, selection: XSelection) {
+export function updateSelection(tr: Transaction, selection: XSelection): void {
   selection.start.x = selectionFromTransaction(tr, selection.start.x)
   selection.end.x = selectionFromTransaction(tr, selection.end.x)
 }

@@ -402,7 +402,7 @@ export function lengthXY(s: XYSelection): XYLength {
  * @param {XSelection} s
  * @param {Optional<boolean>} toEnd
  */
-export function collapseX(s: XSelection, toEnd?: boolean) {
+export function collapseX(s: XSelection, toEnd?: boolean): void {
   if (toEnd) {
     s.start = createXPoint(s.end.x)
   }
@@ -418,7 +418,7 @@ export function collapseX(s: XSelection, toEnd?: boolean) {
  * @param {YSelection} s
  * @param {Optional<boolean>} toEnd
  */
-export function collapseY(s: YSelection, toEnd?: boolean) {
+export function collapseY(s: YSelection, toEnd?: boolean): void {
   if (toEnd) {
     s.start = createYPoint(s.end.y)
   }
@@ -434,7 +434,7 @@ export function collapseY(s: YSelection, toEnd?: boolean) {
  * @param {XYSelection} s
  * @param {Optional<boolean>} toEnd
  */
-export function collapseXY(s: XYSelection, toEnd?: boolean) {
+export function collapseXY(s: XYSelection, toEnd?: boolean): void {
   collapseX(s, toEnd)
   collapseY(s, toEnd)
 }
