@@ -143,7 +143,8 @@ export class Transaction {
   }
 
   /**
-   * Class constructor.
+   * @constructor
+   *
    * @param {Text} t
    * @param {Operation[]} ops @default []
    */

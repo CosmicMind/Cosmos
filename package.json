@@ -60,6 +60,8 @@
     "vite-tsconfig-paths": "^3.5.0"
   },
   "dependencies": {
+    "@cosmicverse/algo": "^0.0.1-rc-c",
+    "@cosmicverse/foundation": "^0.0.1-rc-zn",
     "dotenv": "^16.0.1"
   }
 }

@@ -102,7 +102,8 @@ export class Text extends Observable {
   }
 
   /**
-   * Class constructor.
+   * @constructor
+   *
    * @param {Attributes} a @default {}
    * @param {Delta[]} d @default []
    */
@@ -127,6 +128,7 @@ export class Text extends Observable {
    * The `fetchAt` method accommodates the issue if a
    * position falls within a string range where the character
    * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
+   *
    * @param {number} at
    * @returns {Nullable<DeltaType>}
    */
