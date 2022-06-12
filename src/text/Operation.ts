@@ -63,12 +63,12 @@ export type BlockType =
  * The type of `block` that is rendered.
  */
 export const Block = Object.freeze({
-  paragraph: 'paragraph' as BlockType,
-  blockquote: 'blockquote' as BlockType,
-  unorderedList: 'unordered-list' as BlockType,
-  unordered: 'unordered' as BlockType,
-  orderedList: 'ordered-list' as BlockType,
-  ordered: 'ordered' as BlockType,
+  paragraph: 'paragraph',
+  blockquote: 'blockquote',
+  unorderedList: 'unordered-list',
+  unordered: 'unordered',
+  orderedList: 'ordered-list',
+  ordered: 'ordered',
 })
 
 export interface DeltaBlock {
