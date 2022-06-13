@@ -70,27 +70,27 @@ export interface LineOptions {
  * @property {Optional<'left' | 'center' | 'right' | 'justify'>} align
  */
 export interface Attributes {
-  fontSize?: string,
-  fontFamily?: string,
-  fontWeight?: string,
-  fontStyle?: string,
-  lineHeight?: string
-  color?: string
+  fontSize: string,
+  fontFamily: string,
+  fontWeight: string,
+  fontStyle: string,
+  lineHeight: string
+  color: string
 
-  bold?: boolean
-  italic?: boolean
-  underline?: boolean | Partial<LineOptions>
-  strikethrough?: boolean | Partial<LineOptions>
+  bold: boolean
+  italic: boolean
+  underline: boolean | Partial<LineOptions>
+  strikethrough: boolean | Partial<LineOptions>
 
-  verticalAlign?: 'baseline' | 'super' | 'sub'
-  align?: 'left' | 'center' | 'right' | 'justify'
+  verticalAlign: 'baseline' | 'super' | 'sub'
+  align: 'left' | 'center' | 'right' | 'justify'
 }
 
 /**
  * Creates an `Attributes` instance.
- * @returns {Attributes}
+ * @returns {Partial<Attributes>}
  */
-export function createAttributes(): Attributes {
+export function createAttributes(): Partial<Attributes> {
   return {}
 }
 
@@ -132,8 +132,8 @@ export function extractAttributes(delta: Delta[], s: XSelection): Attributes[] {
  * @param {XSelection} s
  * @param {Attributes} a
  * @param {keyof Attributes} k
- * @returns {typeof Attributes[k]}
+ * @returns {typeof Partial<Attributes>[k]}
  */
-export function fetchAttribute<K extends keyof Attributes>(t: Text, s: XSelection, k: K): Attributes[K] {
+export function fetchAttribute<K extends keyof Attributes>(t: Text, s: XSelection, k: K): Partial<Attributes>[K] {
   return extractAttributes(t.delta, s).find(x => x[k])?.[k]
 }

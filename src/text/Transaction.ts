@@ -65,7 +65,6 @@ import {
   Block,
   BlockType,
   DeltaType,
-  DeltaBlock,
 } from './Operation'
 
 import { Text } from './Text'
@@ -273,7 +272,7 @@ export class Transaction {
     if (0 < this.#cursor) {
       const at = this.#cursor - 1
       const insert = this.text.fetchAt(at)
-      if (guardFor<DeltaBlock>(insert as DeltaBlock, 'block') && block !== insert.block) {
+      if (guardFor(insert, 'block') && block !== insert.block) {
         this.convertAt(at, block)
         return true
       }

@@ -36,11 +36,6 @@
 
 import { Attributes } from './Attributes'
 
-/**
- * Defines the `inline` element symbol.
- */
-export const InlineSymbol = ' '
-
 export type DeltaInline = string
 
 /**
@@ -49,7 +44,7 @@ export type DeltaInline = string
 export const BlockSymbol = '\n'
 
 /**
- * The type of `block` that is renderable.
+ * The type of `block` that will render.
  */
 export type BlockType =
   'paragraph' |
@@ -62,14 +57,14 @@ export type BlockType =
 /**
  * The type of `block` that is rendered.
  */
-export const Block = Object.freeze({
-  paragraph: 'paragraph',
-  blockquote: 'blockquote',
-  unorderedList: 'unordered-list',
-  unordered: 'unordered',
-  orderedList: 'ordered-list',
-  ordered: 'ordered',
-})
+export enum Block {
+  paragraph = 'paragraph',
+  blockquote = 'blockquote',
+  unorderedList = 'unordered-list',
+  unordered = 'unordered',
+  orderedList = 'ordered-list',
+  ordered = 'ordered',
+}
 
 export interface DeltaBlock {
   block: BlockType
@@ -90,7 +85,7 @@ export type DeltaType = DeltaInline | DeltaBlock
 export interface Delta {
   readonly insert: DeltaType
   readonly length: number
-  readonly attributes: Attributes
+  readonly attributes: Partial<Attributes>
 }
 
 /**
@@ -99,7 +94,7 @@ export interface Delta {
  * @param {Attributes} attributes
  * @returns {Delta}
  */
-export function createDelta(insert: DeltaType, attributes: Attributes = {}): Delta {
+export function createDelta(insert: DeltaType, attributes: Partial<Attributes> = {}): Delta {
   return 'string' === typeof insert ?
     createDeltaText(insert, attributes) :
     createDeltaBlock(insert.block as BlockType, attributes)
@@ -107,11 +102,11 @@ export function createDelta(insert: DeltaType, attributes: Attributes = {}): Del
 
 /**
  * Creates an `Delta` for `text` specifically.
- * @param {InlineType} inline
+ * @param {DeltaInline} insert
  * @param {Attributes} attributes
  * @returns {Delta}
  */
-export function createDeltaText(insert: DeltaInline, attributes: Attributes = {}): Delta {
+export function createDeltaText(insert: DeltaInline, attributes: Partial<Attributes> = {}): Delta {
   return {
     insert,
     length: insert.length,
@@ -125,7 +120,7 @@ export function createDeltaText(insert: DeltaInline, attributes: Attributes = {}
  * @param {Attributes} attributes
  * @returns {Delta}
  */
-export function createDeltaBlock(block: BlockType, attributes: Attributes = {}): Delta {
+export function createDeltaBlock(block: BlockType, attributes: Partial<Attributes> = {}): Delta {
   return {
     insert: { block },
     length: 1,
