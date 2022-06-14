@@ -36,7 +36,6 @@
 
 /**
  * References the `x` dimension, Domain.
- * @property {number} x
  */
 export interface XPoint {
   x: number
@@ -45,8 +44,6 @@ export interface XPoint {
 /**
  * References the `x` dimension, and
  * `y` dimension.
- * @property {number} dx
- * @property {number} dy
  */
 export interface XYDistance {
   dx: number
@@ -56,8 +53,6 @@ export interface XYDistance {
 /**
  * References the `x` dimension, and
  * `y` dimension.
- * @property {number} lx
- * @property {number} ly
  */
 export interface XYLength {
   lx: number
@@ -66,8 +61,6 @@ export interface XYLength {
 
 /**
  * Creates a new `XPoint` instance.
- * @param {number} x
- * @returns {XPoint}
  */
 export function createXPoint(x = 0): XPoint {
   return {
@@ -77,7 +70,6 @@ export function createXPoint(x = 0): XPoint {
 
 /**
  * References the `y` dimension, Range.
- * @property {number} y
  */
 export interface YPoint {
   y: number
@@ -91,16 +83,12 @@ export function createYPoint(y = 0): YPoint {
 
 /**
  * References the `x` and `y` dimensions.
- * @property {number} x
- * @property {number} y
  */
 export interface XYPoint extends XPoint, YPoint {
 }
 
 /**
  * Creates a new `XYPoint`.
- * @param {number} x @default 0
- * @param {number} y @default x
  */
 export function createXYPoint(x = 0, y = 0): XYPoint {
   return {
@@ -112,9 +100,6 @@ export function createXYPoint(x = 0, y = 0): XYPoint {
 /**
  * The `Selection` interface describes a `start` position
  * and `end` position.
- * @template T
- * @property {T} start
- * @property {T} end
  */
 export interface Selection<T> {
   start: T
@@ -124,15 +109,11 @@ export interface Selection<T> {
 /**
  * The `XSelection` interface describes a `start` point
  * and `end` point for the `X` plane.
- * @property {XPoint} start
- * @property {XPoint} end
  */
 export type XSelection = Selection<XPoint>
 
 /**
  * Creates a new `XSelection`.
- * @param {number} start @default 0
- * @param {number} end @default start
  */
 export function createXSelection(start = 0, end = start): XSelection {
   return {
@@ -144,16 +125,12 @@ export function createXSelection(start = 0, end = start): XSelection {
 /**
  * The `YSelection` interface describes a `start` point
  * and `end` point for the `Y` plane.
- * @property {YPoint} start
- * @property {YPoint} end
  */
 export type YSelection = Selection<YPoint>
 
 
 /**
  * Creates a new `YSelection`.
- * @param {number} start @default 0
- * @param {number} end @default start
  */
 export function createYSelection(start = 0, end = start): YSelection {
   return {
@@ -165,16 +142,12 @@ export function createYSelection(start = 0, end = start): YSelection {
 /**
  * The `XYSelection` interface describes a `start` point
  * and `end` point for the `X` plane and `Y` plane.
- * @property {XYPoint} start
- * @property {XYPoint} end
  */
 export type XYSelection = Selection<XYPoint>
 
 
 /**
  * Creates a new `XYSelection`.
- * @param {number} start @default {x:0,y:0}
- * @param {number} end @default start
  */
 export function createXYSelection(start: XYPoint = createXYPoint(), end: XYPoint = start): XYSelection {
   return {
@@ -186,8 +159,6 @@ export function createXYSelection(start: XYPoint = createXYPoint(), end: XYPoint
 /**
  * Determines if the selection is from the
  * right to left.
- * @param {XSelection} s
- * @returns {boolean}
  */
 export function isBackwards(s: XSelection): boolean {
   return s.start.x > s.end.x
@@ -196,8 +167,6 @@ export function isBackwards(s: XSelection): boolean {
 /**
  * Determines if the selection is from the
  * top to bottom.
- * @param {YSelection} s
- * @returns {boolean}
  */
 export function isTtoB(s: YSelection): boolean {
   return s.start.y > s.end.y
@@ -206,8 +175,6 @@ export function isTtoB(s: YSelection): boolean {
 /**
  * Calculates whether the `start` or `end` is
  * the `from` position.
- * @param {XSelection} s
- * @returns {XPoint}
  */
 export function fromX(s: XSelection): XPoint {
   return isBackwards(s) ? s.end : s.start
@@ -216,8 +183,6 @@ export function fromX(s: XSelection): XPoint {
 /**
  * Calculates whether the `start` or `end` is
  * the `from` position.
- * @param {YSelection} s
- * @returns {YPoint}
  */
 export function fromY(s: YSelection): YPoint {
   return isTtoB(s) ? s.end : s.start
@@ -226,8 +191,6 @@ export function fromY(s: YSelection): YPoint {
 /**
  * Calculates whether the `start` or `end` is
  * the `from` position.
- * @param {XYSelection} s
- * @returns {XPoint}
  */
 export function fromXY(s: XYSelection): XYPoint {
   return {
@@ -239,8 +202,6 @@ export function fromXY(s: XYSelection): XYPoint {
 /**
  * Calculates whether the `start` or `end` is
  * the `to` position.
- * @param {XSelection} s
- * @returns {XPoint}
  */
 export function toX(s: XSelection): XPoint {
   return isBackwards(s) ? s.start : s.end
@@ -249,8 +210,6 @@ export function toX(s: XSelection): XPoint {
 /**
  * Calculates whether the `start` or `end` is
  * the `to` position.
- * @param {YSelection} s
- * @returns {YPoint}
  */
 export function toY(s: YSelection): YPoint {
   return isTtoB(s) ? s.start : s.end
@@ -259,8 +218,6 @@ export function toY(s: YSelection): YPoint {
 /**
  * Calculates whether the `start` or `end` is
  * the `to` position.
- * @param {XYSelection} s
- * @returns {XPoint}
  */
 export function toXY(s: XYSelection): XYPoint {
   return {
@@ -272,9 +229,6 @@ export function toXY(s: XYSelection): XYPoint {
 /**
  * Determines if the given `XPoint` is within
  * the `XSelection`.
- * @param {XSelection} s
- * @param {XPoint} p
- * @returns {boolean}
  */
 export function withinX(s: XSelection, p: XPoint): boolean {
   return fromX(s).x <= p.x && p.x <= toX(s).x
@@ -283,9 +237,6 @@ export function withinX(s: XSelection, p: XPoint): boolean {
 /**
  * Determines if the given `YPoint` is within
  * the `YSelection`.
- * @param {YSelection} s
- * @param {YPoint} p
- * @returns {boolean}
  */
 export function withinY(s: YSelection, p: YPoint): boolean {
   return fromY(s).y <= p.y && p.y <= toY(s).y
@@ -294,9 +245,6 @@ export function withinY(s: YSelection, p: YPoint): boolean {
 /**
  * Determines if the given `XYPoint` is within
  * the `XYSelection`.
- * @param {XYSelection} s
- * @param {XYPoint} p
- * @returns {boolean}
  */
 export function withinXY(s: XYSelection, p: XYPoint): boolean {
   return withinX(s, p) && withinY(s, p)
@@ -304,9 +252,6 @@ export function withinXY(s: XYSelection, p: XYPoint): boolean {
 
 /**
  * Determines if the given `XPoint` instances are equal.
- * @param {XPoint} a
- * @param {XPoint} b
- * @returns {boolean}
  */
 export function equalsX(a: XPoint, b: XPoint): boolean {
   return a.x === b.x
@@ -314,9 +259,6 @@ export function equalsX(a: XPoint, b: XPoint): boolean {
 
 /**
  * Determines if the given `YPoint` instances are equal.
- * @param {YPoint} a
- * @param {YPoint} b
- * @returns {boolean}
  */
 export function equalsY(a: YPoint, b: YPoint): boolean {
   return a.y === b.y
@@ -324,9 +266,6 @@ export function equalsY(a: YPoint, b: YPoint): boolean {
 
 /**
  * Determines if the given `XYPoint` instances are equal.
- * @param {XYPoint} a
- * @param {XYPoint} b
- * @returns {boolean}
  */
 export function equalsXY(a: XYPoint, b: XYPoint): boolean {
   return equalsX(a, b) && equalsY(a, b)
@@ -334,8 +273,6 @@ export function equalsXY(a: XYPoint, b: XYPoint): boolean {
 
 /**
  * Determines the difference between the `XSelection` points.
- * @param {XSelection} s
- * @returns {number}
  */
 export function distanceX(s: XSelection): number {
   return toX(s).x - fromX(s).x
@@ -343,8 +280,6 @@ export function distanceX(s: XSelection): number {
 
 /**
  * Determines the difference between the `YSelection` points.
- * @param {YSelection} s
- * @returns {number}
  */
 export function distanceY(s: YSelection): number {
   return toY(s).y - fromY(s).y
@@ -352,8 +287,6 @@ export function distanceY(s: YSelection): number {
 
 /**
  * Determines the difference between the `XYSelection` points.
- * @param {XYSelection} s
- * @returns {XYDistance}
  */
 export function distanceXY(s: XYSelection): XYDistance {
   return {
@@ -365,8 +298,6 @@ export function distanceXY(s: XYSelection): XYDistance {
 /**
  * Determines the length of the `XSelection` points.
  * If start === end, then length is `0`.
- * @param {XSelection} s
- * @returns {number}
  */
 export function lengthX(s: XSelection): number {
   return distanceX(s) + 1
@@ -375,8 +306,6 @@ export function lengthX(s: XSelection): number {
 /**
  * Determines the length of the `YSelection` points.
  * If start === end, then length is `0`.
- * @param {YSelection} s
- * @returns {number}
  */
 export function lengthY(s: YSelection): number {
   return distanceY(s) + 1
@@ -385,8 +314,6 @@ export function lengthY(s: YSelection): number {
 /**
  * Determines the length of the `XYSelection` points.
  * If start === end, then length is `0`.
- * @param {XYSelection} s
- * @returns {XYLength}
  */
 export function lengthXY(s: XYSelection): XYLength {
   return {
@@ -399,8 +326,6 @@ export function lengthXY(s: XYSelection): XYLength {
  * Collapses the given `XSelection`. If the boolean
  * `toEnd` is true, then it is collapsed to the `end`
  * point, otherwise to the `start` point.
- * @param {XSelection} s
- * @param {Optional<boolean>} toEnd
  */
 export function collapseX(s: XSelection, toEnd?: boolean): void {
   if (toEnd) {
@@ -415,8 +340,6 @@ export function collapseX(s: XSelection, toEnd?: boolean): void {
  * Collapses the given `YSelection`. If the boolean
  * `toEnd` is true, then it is collapsed to the `end`
  * point, otherwise to the `start` point.
- * @param {YSelection} s
- * @param {Optional<boolean>} toEnd
  */
 export function collapseY(s: YSelection, toEnd?: boolean): void {
   if (toEnd) {
@@ -431,8 +354,6 @@ export function collapseY(s: YSelection, toEnd?: boolean): void {
  * Collapses the given `XYSelection`. If the boolean
  * `toEnd` is true, then it is collapsed to the `end`
  * point, otherwise to the `start` point.
- * @param {XYSelection} s
- * @param {Optional<boolean>} toEnd
  */
 export function collapseXY(s: XYSelection, toEnd?: boolean): void {
   collapseX(s, toEnd)
@@ -442,8 +363,6 @@ export function collapseXY(s: XYSelection, toEnd?: boolean): void {
 /**
  * Determines if the given `XSelection` is collapsed,
  * where start === end.
- * @param {XSelection} s
- * @returns {boolean}
  */
 export function isCollapsedX(s: XSelection): boolean {
   return equalsX(s.start, s.end)
@@ -452,8 +371,6 @@ export function isCollapsedX(s: XSelection): boolean {
 /**
  * Determines if the given `YSelection` is collapsed,
  * where start === end.
- * @param {YSelection} s
- * @returns {boolean}
  */
 export function isCollapsedY(s: YSelection): boolean {
   return equalsY(s.start, s.end)
@@ -462,8 +379,6 @@ export function isCollapsedY(s: YSelection): boolean {
 /**
  * Determines if the given `XYSelection` is collapsed,
  * where start === end.
- * @param {XYSelection} s
- * @returns {boolean}
  */
 export function isCollapsedXY(s: XYSelection): boolean {
   return isCollapsedX(s) && isCollapsedY(s)

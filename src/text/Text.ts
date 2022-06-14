@@ -73,7 +73,6 @@ import {
 export class Text extends Observable {
   /**
    * A reference to the selection of text.
-   * @type {XSelection}
    */
   readonly selection: XSelection
 
@@ -81,21 +80,18 @@ export class Text extends Observable {
    * A reference to the `Attributes` instance. This value is
    * the current configuration of attributes based on the
    * `cursor` position.
-   * @type {Attributes}
    */
   readonly attributes: Attributes
 
   /**
    * A reference to the `Delta` instances. This value is
    * the current Array of Delta that makeup the `Text` body.
-   * @type {Delta[]}
    */
   readonly delta: Delta[]
 
   /**
    * Returns the current length relative to the
    * `Delta.length` values.
-   * @type {number}
    */
   get length(): number {
     return this.delta.reduce((count, d) => count + d.length, 0)
@@ -103,9 +99,6 @@ export class Text extends Observable {
 
   /**
    * @constructor
-   *
-   * @param {Attributes} a @default {}
-   * @param {Delta[]} d @default []
    */
   constructor(a: Attributes = createAttributes(), d: Delta[] = []) {
     super()
@@ -116,8 +109,6 @@ export class Text extends Observable {
 
   /**
    * Retrieves the `Delta` at the given position.
-   * @param {number} at
-   * @returns {Nullable<Delta>}
    */
   deltaAt(at: number): Nullable<Delta> {
     return deltaAt(at, this.delta)
@@ -128,9 +119,6 @@ export class Text extends Observable {
    * The `fetchAt` method accommodates the issue if a
    * position falls within a string range where the character
    * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
-   *
-   * @param {number} at
-   * @returns {Nullable<DeltaType>}
    */
   fetchAt(at: number): Nullable<DeltaType> {
     return fetchAt(at, this.delta)
@@ -140,12 +128,6 @@ export class Text extends Observable {
    * Creates a synchronous `Transaction` with the given `Operation` instances.
    * As long as a value of `true` is not returned within the given `Transaction`
    * block, the `Transaction` will commit its changes.
-   *
-   * @param {(tr: Transaction) => Voidable<boolean>} fn
-   * @param {Optional<(t: Text, tr: Transaction) => void>} cb When the `callback`
-   * function is set, then the `beforeTransaction`, and `afterTransaction`
-   * event emitters are not executed.
-   * @returns {Transaction}
    */
   transactSync(fn: (tr: Transaction) => Voidable<boolean>, cb?: (t: Text, tr: Transaction) => void): Transaction {
     const tr = createTransaction(this)
@@ -173,12 +155,6 @@ export class Text extends Observable {
    * Creates an asynchronous `Transaction` with the given `Operation` instances.
    * As long as a value of `true` is not returned within the given `Transaction`
    * block, the `Transaction` will commit its changes.
-   *
-   * @param {(tr: Transaction) => Voidable<boolean>} fn
-   * @param {Optional<(t: Text, tr: Transaction) => void>} cb When the `callback`
-   * function is set, then the `beforeTransaction`, and `afterTransaction`
-   * event emitters are not executed.
-   * @returns {Promise<Transaction>}
    */
   transactAsync(fn: (tr: Transaction) => Voidable<boolean>, cb?: (t: Text, tr: Transaction) => void): Promise<unknown> {
     return async((): Voidable<Transaction> => {
@@ -210,8 +186,6 @@ export class Text extends Observable {
    * Simulates a `Transaction` on the given `Text`, but doesn't
    * actually execute it on the `Text` itself. A copy is made
    * and returned to the caller.
-   * @param {(tr: Transaction) => Voidable<boolean>} fn
-   * @returns {Text}
    */
   transactSimulate(fn: (tr: Transaction) => Voidable<boolean>): Text {
     const text = new Text(
@@ -230,7 +204,6 @@ export class Text extends Observable {
 
   /**
    * Applies the given `Operation` instances to the `Text`.
-   * @param {Operation[]} ops
    */
   apply(ops: Operation[]): void {
     const tr = createTransaction(this, ops)
@@ -246,8 +219,6 @@ export class Text extends Observable {
  * It relatively updates the `x` values for the
  * `XSelection` points by using the `Transaction`
  * operations.
- * @param {Transaction} tr
- * @param {XSelection} selection
  */
 export function updateSelection(tr: Transaction, selection: XSelection): void {
   selection.start.x = selectionFromTransaction(tr, selection.start.x)

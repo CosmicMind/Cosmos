@@ -78,9 +78,6 @@ export type DeltaType = DeltaInline | DeltaBlock
 
 /**
  * Defines an `Delta`.
- * @property {DeltaType} insert
- * @property {number} length
- * @property {Attributes} attributes
  */
 export interface Delta {
   readonly insert: DeltaType
@@ -90,9 +87,6 @@ export interface Delta {
 
 /**
  * Creates an `Delta`.
- * @param {DeltaType} insert
- * @param {Attributes} attributes
- * @returns {Delta}
  */
 export function createDelta(insert: DeltaType, attributes: Partial<Attributes> = {}): Delta {
   return 'string' === typeof insert ?
@@ -102,9 +96,6 @@ export function createDelta(insert: DeltaType, attributes: Partial<Attributes> =
 
 /**
  * Creates an `Delta` for `text` specifically.
- * @param {DeltaInline} insert
- * @param {Attributes} attributes
- * @returns {Delta}
  */
 export function createDeltaText(insert: DeltaInline, attributes: Partial<Attributes> = {}): Delta {
   return {
@@ -116,9 +107,6 @@ export function createDeltaText(insert: DeltaInline, attributes: Partial<Attribu
 
 /**
  * Creates an `Delta` for `blocks` specifically.
- * @param {BlockType} block
- * @param {Attributes} attributes
- * @returns {Delta}
  */
 export function createDeltaBlock(block: BlockType, attributes: Partial<Attributes> = {}): Delta {
   return {
@@ -130,8 +118,6 @@ export function createDeltaBlock(block: BlockType, attributes: Partial<Attribute
 
 /**
  * Defines a `RetainOperation`.
- * @property {number} retain
- * @property {Optional<Attributes>}
  */
 export interface RetainOperation {
   readonly retain: number
@@ -140,9 +126,6 @@ export interface RetainOperation {
 
 /**
  * Creates a `RetainOperation`.
- * @param {number} retain
- * @param {Optional<Attributes>} attributes
- * @returns {RetainOperation}
  */
 export function createRetainOperation(retain: number, attributes?: Attributes): RetainOperation {
   return {
@@ -153,7 +136,6 @@ export function createRetainOperation(retain: number, attributes?: Attributes): 
 
 /**
  * Defines a `DeleteOperation`.
- * @property {number} delete
  */
 export interface DeleteOperation {
   readonly delete: number
@@ -161,8 +143,6 @@ export interface DeleteOperation {
 
 /**
  * Creates a `DeleteOperation`.
- * @param {number} length
- * @returns {DeleteOperation}
  */
 export function createDeleteOperation(length: number): DeleteOperation {
   return {
@@ -172,9 +152,6 @@ export function createDeleteOperation(length: number): DeleteOperation {
 
 /**
  * Defines a `SwapOperation`.
- * @property {DeltaType} swap
- * @property {number} length
- * @property {Optional<Attributes>}
  */
 export interface SwapOperation {
   readonly swap: DeltaType
@@ -184,9 +161,6 @@ export interface SwapOperation {
 
 /**
  * Creates a `SwapOperation`.
- * @param {DeltaType} swap
- * @param {Optional<Attributes>} attributes
- * @returns {RetainOperation}
  */
 export function createSwapOperation(swap: DeltaType, attributes?: Attributes): SwapOperation {
   return {

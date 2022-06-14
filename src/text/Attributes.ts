@@ -45,8 +45,6 @@ import { Delta } from './Operation'
 
 /**
  * The `LineOptions` interface defines the various line options available.
- * @property {Optional<string>} color
- * @property {Optional<'dotted' | 'dashed' | 'solid' | 'double' | 'groove' | 'ridge' | 'inset' | 'outset'>} style
  */
 export interface LineOptions {
   color: string
@@ -56,18 +54,6 @@ export interface LineOptions {
 /**
  * The `Attributes` interface defines the various
  * attributes available.
- * @property {Optional<string>} fontSize
- * @property {Optional<string>} fontFamily
- * @property {Optional<string>} fontWeight
- * @property {Optional<string>} fontStyle
- * @property {Optional<string>} lineHeight
- * @property {Optional<string>} color
- * @property {Optional<string>} bold
- * @property {Optional<string>} italic
- * @property {Optional<string | Partial<LineOptions>>} underline
- * @property {Optional<string | Partial<LineOptions>>} strikethrough
- * @property {Optional<'baseline' | 'super' | 'sub'>} verticalAlign
- * @property {Optional<'left' | 'center' | 'right' | 'justify'>} align
  */
 export interface Attributes {
   fontSize: string,
@@ -88,7 +74,6 @@ export interface Attributes {
 
 /**
  * Creates an `Attributes` instance.
- * @returns {Partial<Attributes>}
  */
 export function createAttributes(): Partial<Attributes> {
   return {}
@@ -96,9 +81,6 @@ export function createAttributes(): Partial<Attributes> {
 
 /**
  * Extracts an array of attributes used within the given `XSelection`.
- * @param {Delta[]} delta
- * @param {XSelection} s
- * @returns {Attributes[]}
  */
 export function extractAttributes(delta: Delta[], s: XSelection): Attributes[] {
   const fX = fromX(s).x
@@ -128,11 +110,6 @@ export function extractAttributes(delta: Delta[], s: XSelection): Attributes[] {
 
 /**
  * Fetches the value of the passed in `Attribute`.
- * @param {Text} t
- * @param {XSelection} s
- * @param {Attributes} a
- * @param {keyof Attributes} k
- * @returns {typeof Partial<Attributes>[k]}
  */
 export function fetchAttribute<K extends keyof Attributes>(t: Text, s: XSelection, k: K): Partial<Attributes>[K] {
   return extractAttributes(t.delta, s).find(x => x[k])?.[k]

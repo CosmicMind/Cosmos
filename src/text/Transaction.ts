@@ -77,14 +77,12 @@ import { Attributes } from './Attributes'
 export class Transaction {
   /**
    * Internal `cursor` reference.
-   * @type {number}
    */
   #cursor: number
 
   /**
    * The position that the `Transaction`
    * will execute the current `Operation`.
-   * @type {number}
    */
   get cursor(): number {
     return this.#cursor
@@ -97,7 +95,6 @@ export class Transaction {
 
   /**
    * A reference to the `XSelection` instance.
-   * @type {XSelection}
    */
   get selection(): XSelection {
     return this.text.selection
@@ -105,7 +102,6 @@ export class Transaction {
 
   /**
    * A reference to the `Attributes` instance.
-   * @type {Attributes}
    */
   get attributes(): Attributes {
     return this.text.attributes
@@ -113,7 +109,6 @@ export class Transaction {
 
   /**
    * A reference to the `Delta` instance.
-   * @type {Delta[]}
    */
   get delta(): Delta[] {
     return this.text.delta
@@ -121,13 +116,11 @@ export class Transaction {
 
   /**
    * Holds the `Operation` instances.
-   * @type {Operation[]}
    */
   readonly operations: Operation[]
 
   /**
    * Internal reference to `hasBlockAtFront`.
-   * @type {boolean}
    */
   #hasBlockAtFront: boolean
 
@@ -135,7 +128,6 @@ export class Transaction {
    * A boolean flag that indicates if the
    * `ensureBlockAtFront` method has been
    * used.
-   * @type {boolean}
    */
   get hasBlockAtFront(): boolean {
     return this.#hasBlockAtFront
@@ -143,9 +135,6 @@ export class Transaction {
 
   /**
    * @constructor
-   *
-   * @param {Text} t
-   * @param {Operation[]} ops @default []
    */
   constructor(t: Text, ops: Operation[] = []) {
     this.text = t
@@ -162,7 +151,6 @@ export class Transaction {
   /**
    * Pushes new `Operation` instances at the `end`
    * of the `Operation` list.
-   * @param {...Operation} ops
    */
   push(...ops: Operation[]): void {
     this.operations.push(...ops)
@@ -171,7 +159,6 @@ export class Transaction {
   /**
    * Pushes new `Operation` instances at the `start`
    * of the `Operation` list.
-   * @param {...Operation} ops
    */
   unshift(...ops: Operation[]): void {
     this.operations.unshift(...ops)
@@ -179,8 +166,6 @@ export class Transaction {
 
   /**
    * Inserts a new `Delta` instance.
-   * @param {string} content
-   * @param {Optional<Attributes>} attributes
    */
   insert(content: string, attributes?: Attributes): void {
     this.insertAt(this.#cursor, content, attributes)
@@ -188,9 +173,6 @@ export class Transaction {
 
   /**
    * Inserts a new `Delta` instance `at` the given position.
-   * @param {number} at
-   * @param {string} content
-   * @param {Optional<Attributes>} attributes
    */
   insertAt(at: number, content: string, attributes?: Attributes): void {
     if (!this.#deleteIfNeeded()) {
@@ -204,8 +186,6 @@ export class Transaction {
 
   /**
    * Inserts an `DeltaBlock` for the given `BlockType`.
-   * @param {BlockType} block @default Block.paragraph
-   * @param {Optional<Attributes>} attributes
    */
   block(block: BlockType = Block.paragraph, attributes?: Attributes): void {
     this.blockAt(this.#cursor, block, attributes)
@@ -214,9 +194,6 @@ export class Transaction {
   /**
    * Inserts an `DeltaBlock` for the given `BlockType`,
    * `at` the given position.
-   * @param {number} at
-   * @param {BlockType} block @default Block.paragraph
-   * @param {Optional<Attributes>} attributes
    */
   blockAt(at: number, block: BlockType = Block.paragraph, attributes?: Attributes): void {
     if (!this.#deleteIfNeeded()) {
@@ -229,8 +206,6 @@ export class Transaction {
 
   /**
    * Converts the `BlockType` at the `cursor` position.
-   * @param {BlockType} block
-   * @param {Optional<Attributes>} attributes
    */
   convert(block: BlockType, attributes?: Attributes): void {
     this.convertAt(this.#cursor, block, attributes)
@@ -238,9 +213,6 @@ export class Transaction {
 
   /**
    * Converts the `BlockType` `at` the given position.
-   * @param {number} at
-   * @param {BlockType} block
-   * @param {Optional<Attributes>} attributes
    */
   convertAt(at: number, block: BlockType, attributes?: Attributes): void {
     if (!this.#deleteIfNeeded()) {
@@ -265,8 +237,6 @@ export class Transaction {
    * If the location before the current `cursor` position is a `BlockType`
    * and different from the given `block` instance, then it converts
    * the previous `BlockType` and doesn't insert a new one.
-   * @param {BlockType} block
-   * @returns {boolean}
    */
   convertIfNeeded(block: BlockType): boolean {
     if (0 < this.#cursor) {
@@ -284,8 +254,6 @@ export class Transaction {
 
   /**
    * Replaces the `string` at the `cursor` position.
-   * @param {string} content
-   * @param {Optional<Attributes>} attributes
    */
   replace(content: string, attributes?: Attributes): void {
     this.replaceAt(this.#cursor, content, attributes)
@@ -293,9 +261,6 @@ export class Transaction {
 
   /**
    * Replaces the `string` `at` the given position.
-   * @param {number} at
-   * @param {string} content
-   * @param {Optional<Attributes>} attributes
    */
   replaceAt(at: number, content: string, attributes?: Attributes): void {
     if (!this.#deleteIfNeeded()) {
@@ -308,7 +273,6 @@ export class Transaction {
 
   /**
    * Formats the `Selection` of characters at the `cursor` position.
-   * @param {Attributes} attributes
    */
   format(attributes: Attributes): void {
     this.formatAt(this.#cursor, distanceX(this.selection), attributes)
@@ -316,9 +280,6 @@ export class Transaction {
 
   /**
    * Formats the `length` of characters `at` the given position.
-   * @param {number} at
-   * @param {number} length
-   * @param {Attributes} attributes
    */
   formatAt(at: number, length: number, attributes: Attributes): void {
     this.#retainIfNeeded(at)
@@ -329,7 +290,6 @@ export class Transaction {
   /**
    * Deletes the `selection` of characters if a selection exists, or deletes the
    * length of `glyphs`.
-   * @param {XSelection | number} length @default 1
    */
   delete(length: XSelection | number = 1): void {
     if ('number' === typeof length) {
@@ -367,8 +327,6 @@ export class Transaction {
 
   /**
    * Deletes the `length` of glyphs starting `at` the given position.
-   * @param {number} at
-   * @param {number} length
    */
   deleteAt(at: number, length: number): void {
     this.#retainIfNeeded(at)
@@ -402,7 +360,6 @@ export class Transaction {
 
   /**
    * Inserts a `Block.paragraph` operation if needed.
-   * @returns {boolean}
    */
   ensureBlockAtFront(): boolean {
     this.#hasBlockAtFront = true
@@ -418,7 +375,6 @@ export class Transaction {
 
   /**
    * Sets the `cursor` to the given `at` value.
-   * @param {number} at
    */
   #retainIfNeeded(at: number): void {
     if (at <= this.#cursor) {
@@ -432,7 +388,6 @@ export class Transaction {
    * Deletes the selection if it's not collapsed.
    * The `boolean` result indicates whether there
    * has been a selection that was deleted.
-   * @returns {boolean}
    */
   #deleteIfNeeded(): boolean {
     if (isCollapsedX(this.selection)) {
@@ -447,9 +402,6 @@ export class Transaction {
 
 /**
  * Creates a new `Transaction` instance.
- * @param {Text} t
- * @param {Operation[]} [ops=[]]
- * @returns {Transaction}
  */
 export function createTransaction(t: Text, ops: Operation[] = []): Transaction {
   return new Transaction(t, ops)
@@ -458,9 +410,6 @@ export function createTransaction(t: Text, ops: Operation[] = []): Transaction {
 /**
  * Minimizes the number of delta values, based on similar delta instances
  * being adjacent to each other.
- *
- * @param {Delta[]} delta
- * @returns {Delta[]}
  */
 export function minimizeDelta(delta: Delta[]): Delta[] {
   let i = 1
@@ -493,10 +442,6 @@ export function minimizeDelta(delta: Delta[]): Delta[] {
  * The `fetchAt` method accommodates the issue if a
  * position falls within a string range where the character
  * has a length of greater than `1`, such as emoji characters '👨‍👨‍👧‍👧'.
- *
- * @param {number} at
- * @param {Delta[]} delta
- * @returns {Nullable<DeltaType>}
  */
 export function fetchAt(at: number, delta: Delta[]): Nullable<DeltaType> {
   let pos = 0
@@ -560,10 +505,6 @@ export function fetchAt(at: number, delta: Delta[]): Nullable<DeltaType> {
 
 /**
  * Retrieves the `Delta` at the given position.
- *
- * @param {number} at
- * @param {Delta[]} delta
- * @returns {Nullable<Delta>}
  */
 export function deltaAt(at: number, delta: Delta[]): Nullable<Delta> {
   let pos = 0
@@ -585,11 +526,6 @@ export function deltaAt(at: number, delta: Delta[]): Nullable<Delta> {
 /**
  * Processes the given `Operation` list and `Delta` list,
  * and derives a new `Delta` list result.
- *
- * @param {Operation[]} ops
- * @param {Delta[]} delta
- * @param {Optional<Transaction>} tr
- * @returns {Delta[]}
  */
 export function processOperations(ops: Operation[], delta: Delta[]): Delta[] {
   let cursor = 0
@@ -891,9 +827,6 @@ export function processOperations(ops: Operation[], delta: Delta[]): Delta[] {
 /**
  * Processes the given `Operation` list and `Delta` list,
  * and derives a new `Delta` list result.
- * @param {Operation[]} ops
- * @param {Delta[]} delta
- * @returns {Delta[]}
  */
 export function commit(ops: Operation[], delta: Delta[]): Delta[] {
   /**
@@ -907,10 +840,6 @@ export function commit(ops: Operation[], delta: Delta[]): Delta[] {
 
 /**
  * Simulates the list of `Operation` values on a `Delta` list.
- *
- * @param {Operation[]} ops
- * @param {Delta[]} delta
- * @returns {Delta[]}
  */
 export function simulate(ops: Operation[], delta: Delta[]): Delta[] {
   return processOperations([ ...ops ], [ ...delta ])
@@ -919,10 +848,6 @@ export function simulate(ops: Operation[], delta: Delta[]): Delta[] {
 /**
  * Maps the given cursor in the `Text.delta` to a new `cursor`
  * within the new `Text.delta`.
- *
- * @param {Transaction} tr
- * @param {number} position
- * @returns {number}
  */
 export function selectionFromTransaction(tr: Transaction, position: number): number {
   let cursor = 0
