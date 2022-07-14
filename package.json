@@ -1,16 +1,16 @@
 {
-  "name": "@cosmicverse/cosmos",
+  "name": "@cosmicmind/cosmos",
   "version": "0.0.1-rc-a",
   "description": "A transactional data framework for collaborative systems in TypeScript.",
   "keywords": [],
   "author": {
     "name": "Daniel Jonathan",
-    "email": "daniel@cosmicverse.org"
+    "email": "daniel@cosmicmind.org"
   },
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Cosmicverse/Cosmos.git"
+    "url": "https://github.com/CosmicMind/Cosmos.git"
   },
   "type": "module",
   "main": "dist/lib.es.js",
@@ -60,8 +60,8 @@
     "vite-tsconfig-paths": "^3.5.0"
   },
   "dependencies": {
-    "@cosmicverse/algo": "^0.0.1-rc-c",
-    "@cosmicverse/foundation": "^0.0.1-rc-zn",
+    "@cosmicmind/algo": "^0.0.1-rc-c",
+    "@cosmicmind/foundation": "^0.0.1-rc-zn",
     "dotenv": "^16.0.1"
   }
 }
